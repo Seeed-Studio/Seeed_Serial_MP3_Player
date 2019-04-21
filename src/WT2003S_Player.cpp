@@ -39,8 +39,12 @@ void WT2003S::init(COMserial &serialPort, uint8_t pin)
     _busyPin = pin;
 }
 
-uint8_t WT2003S::sendCommand(uint8_t commandLength)
+uint8_t WT2003S::sendCommand(uint8_t commandLength, uint8_t *data, uint8_t len)
 {
+    long time;
+    bool is_again = true;
+    int  again_count = 0;
+again:
     //Clear anything in the buffer
     while(_serial->available() > 0) {
         _serial->read();
@@ -58,41 +62,48 @@ uint8_t WT2003S::sendCommand(uint8_t commandLength)
 
     _serial->write(crc); //Send CRC
     _serial->write(WT2003S_END_CODE);
+
+    time = millis();
+    if(data == NULL){
+        while (! _serial->available() && ((millis() - time) < WT2003S_TIMEOUT)){}
+        return _serial->read();
+    }else{
+        time = millis();
+        while((millis() - time) < WT2003S_TIMEOUT){
+            if(_serial->available()){
+                if(commandBytes[0] == _serial->read()){
+                    is_again = false;
+                    break;
+                }
+            }
+        }
+        if(is_again) {
+            if (++again_count == 5) return -1;
+            Serial.println(String(commandBytes[0],HEX)+"again"); 
+            goto again;
+        }
+        if(len > 9) len = 9;
+        for (int i = 1; i < len; i++){
+            time = millis();
+            while (! _serial->available() && ((millis() - time) < WT2003S_TIMEOUT)){}
+            data[i - 1] = _serial->read();
+        }
+    }
     return 0;
 }
-
-bool WT2003S::getResponse(uint8_t code, uint8_t *data, uint8_t len)
-{
-    uint8_t d = 0;
-    while(1){
-        if(_serial->available()){
-            d = _serial->read();
-            if(code == d)
-                break;
-        }
-        delayMicroseconds(500);
-    }
-    if(len > 9) len = 9;
-    for (int i = 1; i < len; i++){
-        while (! _serial->available()){}
-        data[i - 1] = _serial->read();
-    }
-    return true;
-}
-
 uint8_t WT2003S::playSPIFlashSong(uint16_t index)
 {
     commandBytes[0] = WT2003S_SPIFLASH_PLAY_INDEX;
     commandBytes[1] = (index >> 8) & 0xff;
     commandBytes[2] = 0xff & index;
-    return sendCommand(3);
+    return sendCommand(3, NULL ,0);
 }
 uint8_t WT2003S::playSDRootSong(uint32_t index)
 {
     commandBytes[0] = WT2003S_SD_PLAY_INDEX_IN_ROOT;
     commandBytes[1] = (index >> 8) & 0xff;
     commandBytes[2] = 0xff & index;
-    return sendCommand(3);    
+    return sendCommand(3, NULL ,0);    
 }
 uint8_t WT2003S::playSDSong(const char *fileName)
 {
@@ -101,7 +112,7 @@ uint8_t WT2003S::playSDSong(const char *fileName)
     commandBytes[2] = fileName[1];
     commandBytes[3] = fileName[2];
     commandBytes[4] = fileName[3];
-    return sendCommand(5);
+    return sendCommand(5, NULL ,0);
 }
 uint8_t WT2003S::playSDDirectoruSong(const char* dir, uint16_t index)
 {
@@ -113,14 +124,14 @@ uint8_t WT2003S::playSDDirectoruSong(const char* dir, uint16_t index)
     commandBytes[5] = dir[4];
     commandBytes[6] = (index >> 8) & 0xff;
     commandBytes[7] = 0xff & index;
-    return sendCommand(8);
+    return sendCommand(8, NULL ,0);
 }
 uint8_t WT2003S::playUDiskRootSong(uint32_t index)
 {
     commandBytes[0] = WT2003S_UDISK_PLAY_INDEX_IN_ROOT;
     commandBytes[1] = (index >> 8) & 0xff;
     commandBytes[2] = 0xff & index;
-    return sendCommand(3);
+    return sendCommand(3, NULL ,0);
 }
 uint8_t WT2003S::playUDiskSong(const char *fileName)
 {
@@ -129,7 +140,7 @@ uint8_t WT2003S::playUDiskSong(const char *fileName)
     commandBytes[2] = fileName[1];
     commandBytes[3] = fileName[2];
     commandBytes[4] = fileName[3];
-    return sendCommand(5);
+    return sendCommand(5, NULL ,0);
 }
 uint8_t WT2003S::playUDiskDirectoruSong(const char* dir, uint32_t index)
 {
@@ -141,28 +152,28 @@ uint8_t WT2003S::playUDiskDirectoruSong(const char* dir, uint32_t index)
     commandBytes[5] = dir[4];
     commandBytes[6] = (index >> 8) & 0xff;
     commandBytes[7] = 0xff & index;
-    return sendCommand(8);
+    return sendCommand(8, NULL ,0);
 }
 
 uint8_t WT2003S::pause_or_play()
 {
     commandBytes[0] = WT2003S_PAUSE_OR_PLAY;
-    return sendCommand(1);
+    return sendCommand(1, NULL ,0);
 }
 uint8_t WT2003S::stop()
 {
     commandBytes[0] = WT2003S_STOP;
-    return sendCommand(1);
+    return sendCommand(1, NULL ,0);
 }
 uint8_t WT2003S::next()
 {
     commandBytes[0] = WT2003S_NEXT;
-    return sendCommand(1);
+    return sendCommand(1, NULL ,0);
 }
 uint8_t WT2003S::previous()
 {
     commandBytes[0] = WT2003S_PREVIOUS;
-    return sendCommand(1);
+    return sendCommand(1, NULL ,0);
 }
 uint8_t WT2003S::volume(uint8_t vol)
 {
@@ -170,13 +181,13 @@ uint8_t WT2003S::volume(uint8_t vol)
         vol = WT2003S_MAX_VOLUME;
     commandBytes[0] = WT2003S_SET_VOLUME;
     commandBytes[1] = vol;
-    return sendCommand(2);
+    return sendCommand(2, NULL ,0);
 }
 uint8_t WT2003S::playMode(PLAY_MODE mode)
 {
     commandBytes[0] = WT2003S_SET_PLAYMODE;
     commandBytes[1] = mode;
-    return sendCommand(2);
+    return sendCommand(2, NULL ,0);
 }
 //Note if current playing in spi flash ,this API cannt be used
 uint8_t WT2003S::cutInPlay(STROAGE device, uint32_t index)
@@ -184,7 +195,7 @@ uint8_t WT2003S::cutInPlay(STROAGE device, uint32_t index)
     commandBytes[0] = WT2003S_SET_CUTIN_MODE;
     commandBytes[1] = device;
     commandBytes[2] = index;
-    return sendCommand(3);
+    return sendCommand(3, NULL ,0);
 }
 //Copy SD to SPI-FLASH
 // return: 
@@ -195,7 +206,7 @@ uint8_t WT2003S::cutInPlay(STROAGE device, uint32_t index)
 uint8_t WT2003S::copySDtoSPIFlash()
 {
     commandBytes[0] = WT2003S_COPY_SDTOSPIFLASH;
-    return sendCommand(1);
+    return sendCommand(1, NULL ,0);
 }
 //Copy UDISK to SPI-FLASH
 // return: 
@@ -206,7 +217,7 @@ uint8_t WT2003S::copySDtoSPIFlash()
 uint8_t WT2003S::copyUDisktoSPIFlash()
 {
     commandBytes[0] = WT2003S_COPY_UDISKTOSPIFLASH;
-    return sendCommand(1);
+    return sendCommand(1, NULL ,0);
 }
 uint8_t WT2003S::writeUserData(uint16_t address, uint32_t data)
 {
@@ -217,29 +228,27 @@ uint8_t WT2003S::writeUserData(uint16_t address, uint32_t data)
     commandBytes[4] = (data >> 16) & 0xff;
     commandBytes[5] = (data >> 8) & 0xff;
     commandBytes[6] = 0xff & data;
-    return sendCommand(7);
+    return sendCommand(7, NULL ,0);
 }
 uint8_t WT2003S::switchWorkDisk(STROAGE disk)
 {
     commandBytes[0] = WT2003S_SWITCH_WORKDATA;
     commandBytes[1] = disk;
-    return sendCommand(2);
+    return sendCommand(2, NULL ,0);
 }
 
 int8_t WT2003S::getVolume()
 {
     uint8_t vol;
     commandBytes[0] = WT2003S_GET_VOLUME;
-    sendCommand(1);
-    getResponse(WT2003S_GET_VOLUME, &vol, 2);
+    sendCommand(1, &vol, 2);
     return vol;
 }
 int8_t WT2003S::getStatus()
 {
     uint8_t status;
     commandBytes[0] = WT2003S_GET_STATE;
-    sendCommand(1);
-    getResponse(WT2003S_GET_STATE, &status, 2);
+    sendCommand(1, &status, 2);
     return status;
 }
 
@@ -247,8 +256,7 @@ uint32_t WT2003S::getSPIFlashMp3FileNumber()
 {
     uint8_t num;
     commandBytes[0] = WT2003S_GET_SPIFLASH_SONGCOUNT;
-    sendCommand(1);
-    getResponse(WT2003S_GET_SPIFLASH_SONGCOUNT, &num, 2);
+    sendCommand(1, &num, 2);
     return num;
 }
 uint32_t WT2003S::getSDMp3FileNumber()
@@ -259,8 +267,7 @@ uint32_t WT2003S::getSDMp3FileNumber()
     }num;
     uint8_t tmp;
     commandBytes[0] = WT2003S_GET_SD_SONGCOUNT;
-    sendCommand(1);
-    getResponse(WT2003S_GET_SD_SONGCOUNT, num.d, 3);
+    sendCommand(1, num.d, 3);
     tmp = num.d[0];
     num.d[0] = num.d[1];
     num.d[1] = tmp;
@@ -275,16 +282,14 @@ uint32_t WT2003S::getSDDirectoryMp3FileNumber(const char *dir)
     commandBytes[3] = dir[2];
     commandBytes[4] = dir[3];
     commandBytes[5] = dir[4];
-    sendCommand(6);
-    getResponse(WT2003S_GET_SD_SONGS_IN_FOLDER_COUNT, &num, 2);
+    sendCommand(6, &num, 2);
     return num;
 }
 uint32_t WT2003S::getUDiskMp3FileNumber()
 {
     uint8_t num;
     commandBytes[0] = WT2003S_GET_UDISK_SONGCOUNT;
-    sendCommand(1);
-    getResponse(WT2003S_GET_UDISK_SONGCOUNT, &num, 2);
+    sendCommand(1, &num, 2);
     return num;
 }
 uint32_t WT2003S::getUDiskDirectoryMp3FileNumber(const char *dir)
@@ -296,8 +301,7 @@ uint32_t WT2003S::getUDiskDirectoryMp3FileNumber(const char *dir)
     commandBytes[3] = dir[2];
     commandBytes[4] = dir[3];
     commandBytes[5] = dir[4];
-    sendCommand(6);
-    getResponse(WT2003S_GET_UDISK_SONGS_IN_FOLDER_COUNT, &num, 2);
+    sendCommand(6, &num, 2);
     return num;
 }
 uint32_t WT2003S::getTracks()
@@ -308,8 +312,7 @@ uint32_t WT2003S::getTracks()
     }data;
     uint8_t tmp;
     commandBytes[0] = WT2003S_GET_FILE_PLAYING;
-    sendCommand(1);
-    getResponse(WT2003S_GET_FILE_PLAYING, data.d, 3);
+    sendCommand(1, data.d, 3);
     tmp = data.d[0];
     data.d[0] = data.d[1];
     data.d[1] = tmp;
@@ -318,15 +321,13 @@ uint32_t WT2003S::getTracks()
 void WT2003S::getSongName(char* Songname)
 {
     commandBytes[0] = WT2003S_GET_SONG_NAME_PLAYING;
-    sendCommand(1);
-    getResponse(WT2003S_GET_SONG_NAME_PLAYING, Songname, 9);
+    sendCommand(1, Songname, 9);
 }
 uint8_t WT2003S::getDiskStatus()
 {
     uint8_t disk;
     commandBytes[0] = WT2003S_DISKSTATUS;
-    sendCommand(1);
-    getResponse(WT2003S_DISKSTATUS, &disk, 2);
+    sendCommand(1, &disk, 2);
     return disk;
 }
 void WT2003S::getSPIFLashMp3Data(char *data,uint16_t address,uint16_t len)
@@ -339,6 +340,5 @@ void WT2003S::getSPIFLashMp3Data(char *data,uint16_t address,uint16_t len)
 
     commandBytes[4] = (len >> 8) & 0xff;
     commandBytes[5] = 0xff & len;
-    sendCommand(6);
-    getResponse(WT2003S_GET_USERDATA, data, len + 4);
+    sendCommand(6, data, len + 4);
 }

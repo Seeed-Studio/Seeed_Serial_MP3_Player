@@ -51,15 +51,15 @@ void getAllSong(){
     ShowSerial.print("SPIFlash:");
     ShowSerial.println(spi_flash_songs);
     if(spi_flash_songs > 0){
-        SPISong = (struct Play_history*)malloc(spi_flash_songs * sizeof(struct Play_history));
+        SPISong = (struct Play_history*)malloc((spi_flash_songs+1) * sizeof(struct Play_history));
         readSongName(SPISong,spi_flash_songs,SPIFLASH);
     }
-    if(diskstatus && 0x01) { // have SD
+    if(diskstatus && 0x02) { // have SD
         sd_songs = Mp3Player.getSDMp3FileNumber();
         ShowSerial.print("SD:");
         ShowSerial.println(sd_songs);
         if(sd_songs > 0){
-            SDSong = (struct Play_history*)malloc(sd_songs * sizeof(struct Play_history));
+            SDSong = (struct Play_history*)malloc((sd_songs+1) * sizeof(struct Play_history));
             ShowSerial.println("1...");
             readSongName(SDSong,sd_songs,SD);
         }
@@ -158,7 +158,10 @@ void loop(){
             Mp3Player.playMode(RANDOM);
             break;
         }  
-        case '0':
+        case 'c':{
+             ShowSerial.print(Mp3Player.copySDtoSPIFlash());
+            break;
+        }  
         case '1':
         case '2':
         case '3':
@@ -169,8 +172,8 @@ void loop(){
         case '8':
         case '9':
             ShowSerial.print("play:");
-            if(workdisk == SD) {Mp3Player.playSDRootSong(cmd - '0'); ShowSerial.print(SDSong[cmd - '0'].name);}
-            if(workdisk == SPIFLASH){ Mp3Player.playSPIFlashSong(cmd - '0'); ShowSerial.print(SPISong[cmd - '0'].name);}
+            if(workdisk == SD) {Mp3Player.playSDRootSong(cmd - '0' - 1);  ShowSerial.print(cmd + ": ");  ShowSerial.print(SDSong[cmd - '0'].name);}
+            if(workdisk == SPIFLASH){ Mp3Player.playSPIFlashSong(cmd - '0' - 1);ShowSerial.print(cmd + ": ");  ShowSerial.print(SPISong[cmd - '0'].name);}
             ShowSerial.println();  
             break;       
         default:
@@ -184,6 +187,7 @@ void printMenu( void )
   ShowSerial.println("MP3 Command List:");
   ShowSerial.println("-----------------");
   ShowSerial.println("'+' or '-'  : raise/lower volume");
+  ShowSerial.println("'1' ~ '9'   : select a song");
   ShowSerial.println("'n'         : next song");
   ShowSerial.println("'s'         : switch play disk, spi flash");
   ShowSerial.println("'p'         : play or pause");
@@ -191,7 +195,7 @@ void printMenu( void )
   ShowSerial.println("'x'         : set playmode single loop");
   ShowSerial.println("'y'         : set playmode all loop");
   ShowSerial.println("'z'         : set playmode random");
-  ShowSerial.println("'X'         : play the file that was copied to the SD card as the Xth file - you just type the number you want - (x in [1,9])");
+  ShowSerial.println("'c'         : Copy mp3 to SPIFlash");
   ShowSerial.println("             (Yes, this really does go by copy order.)");
   ShowSerial.println();
   ShowSerial.println("Any other key to show this menu");
