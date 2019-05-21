@@ -1,11 +1,29 @@
-#include <SoftwareSerial.h>
-SoftwareSerial SSerial(2, 3); // RX, TX
-
-#define ShowSerial Serial 
 #include "WT2003S_Player.h"
 
+#ifdef __AVR__
+#include <SoftwareSerial.h>
+SoftwareSerial SSerial(2, 3); // RX, TX
+#define COMSerial SSerial
+#define ShowSerial Serial 
 
-WT2003S Mp3Player;
+WT2003S<SoftwareSerial> Mp3Player;
+#endif
+
+#ifdef ARDUINO_SAMD_VARIANT_COMPLIANCE
+#define COMSerial Serial1
+#define ShowSerial SerialUSB 
+
+WT2003S<Uart> Mp3Player;
+#endif
+
+#ifdef ARDUINO_ARCH_STM32F4
+#define COMSerial Serial
+#define ShowSerial SerialUSB 
+
+WT2003S<HardwareSerial> Mp3Player;
+#endif
+
+
 uint8_t vol = 10;
 uint32_t spi_flash_songs = 0;
 uint32_t sd_songs = 0;
@@ -44,6 +62,7 @@ void readSongName(struct Play_history* ph, uint32_t num, STROAGE disk){
     Mp3Player.volume(14);
     delay(100);
 }
+
 void getAllSong(){
     uint8_t diskstatus = Mp3Player.getDiskStatus();
     ShowSerial.println(diskstatus);
@@ -91,11 +110,14 @@ void printSongs(){
         ShowSerial.println();
     }
 }
+
 void setup(){
-    Serial.begin(9600);
-    SSerial.begin(9600);
+    while (!ShowSerial);
+    ShowSerial.begin(9600);
+    COMSerial.begin(9600);
     ShowSerial.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    Mp3Player.init(SSerial);
+    Mp3Player.init(COMSerial);
+
     ShowSerial.println("0...");
     getAllSong();
     printMenu();

@@ -25,10 +25,6 @@
  */
 #include "Arduino.h"
 
-#ifndef COMserial
-#include <SoftwareSerial.h>
-#define COMserial SoftwareSerial
-#endif
 
 
 #define WT2003S_NUM_CMD_BYTES 11
@@ -93,19 +89,19 @@ typedef enum {
   UDISK    = 0x02,
 } STROAGE;
 
-
+template <class T>
 class WT2003S
 {
   private:
-	COMserial *_serial;
+	T *_serial;
 	uint8_t _busyPin;
 	uint8_t sendCommand(uint8_t commandLength, uint8_t *data, uint8_t len);
     uint8_t commandBytes[WT2003S_NUM_CMD_BYTES];
 
   public:
 	WT2003S();
-	void init(COMserial &serialPort);
-	void init(COMserial &serialPort, uint8_t pin);
+	void init(T &serialPort);
+	void init(T &serialPort, uint8_t pin);
 
 	uint8_t playSPIFlashSong(uint16_t index);
 	uint8_t playSDRootSong(uint32_t index);

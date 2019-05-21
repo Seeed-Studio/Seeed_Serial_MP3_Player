@@ -24,22 +24,28 @@
  * THE SOFTWARE.
  */
 #include "WT2003S_Player.h"
-WT2003S::WT2003S()
+
+template <class T>
+WT2003S<T>::WT2003S()
 {
     _busyPin = -1;
 }
 
-void WT2003S::init(COMserial &serialPort)
+template <class T>
+void WT2003S<T>::init(T &serialPort)
 {
     _serial = &serialPort;
 }
-void WT2003S::init(COMserial &serialPort, uint8_t pin)
+
+template <class T>
+void WT2003S<T>::init(T &serialPort, uint8_t pin)
 {
     _serial = &serialPort;
     _busyPin = pin;
 }
 
-uint8_t WT2003S::sendCommand(uint8_t commandLength, uint8_t *data, uint8_t len)
+template <class T>
+uint8_t WT2003S<T>::sendCommand(uint8_t commandLength, uint8_t *data, uint8_t len)
 {
     long time;
     bool is_again = true;
@@ -91,21 +97,27 @@ again:
     }
     return 0;
 }
-uint8_t WT2003S::playSPIFlashSong(uint16_t index)
+
+template <class T>
+uint8_t WT2003S<T>::playSPIFlashSong(uint16_t index)
 {
     commandBytes[0] = WT2003S_SPIFLASH_PLAY_INDEX;
     commandBytes[1] = (index >> 8) & 0xff;
     commandBytes[2] = 0xff & index;
     return sendCommand(3, NULL ,0);
 }
-uint8_t WT2003S::playSDRootSong(uint32_t index)
+
+template <class T>
+uint8_t WT2003S<T>::playSDRootSong(uint32_t index)
 {
     commandBytes[0] = WT2003S_SD_PLAY_INDEX_IN_ROOT;
     commandBytes[1] = (index >> 8) & 0xff;
     commandBytes[2] = 0xff & index;
     return sendCommand(3, NULL ,0);    
 }
-uint8_t WT2003S::playSDSong(const char *fileName)
+
+template <class T>
+uint8_t WT2003S<T>::playSDSong(const char *fileName)
 {
     commandBytes[0] = WT2003S_SD_PLAY_FILE_IN_ROOT;
     commandBytes[1] = fileName[0];
@@ -114,7 +126,9 @@ uint8_t WT2003S::playSDSong(const char *fileName)
     commandBytes[4] = fileName[3];
     return sendCommand(5, NULL ,0);
 }
-uint8_t WT2003S::playSDDirectoruSong(const char* dir, uint16_t index)
+
+template <class T>
+uint8_t WT2003S<T>::playSDDirectoruSong(const char* dir, uint16_t index)
 {
     commandBytes[0] = WT2003S_SD_PLAY_INDEX_IN_FOLDER;
     commandBytes[1] = dir[0];
@@ -126,14 +140,18 @@ uint8_t WT2003S::playSDDirectoruSong(const char* dir, uint16_t index)
     commandBytes[7] = 0xff & index;
     return sendCommand(8, NULL ,0);
 }
-uint8_t WT2003S::playUDiskRootSong(uint32_t index)
+
+template <class T>
+uint8_t WT2003S<T>::playUDiskRootSong(uint32_t index)
 {
     commandBytes[0] = WT2003S_UDISK_PLAY_INDEX_IN_ROOT;
     commandBytes[1] = (index >> 8) & 0xff;
     commandBytes[2] = 0xff & index;
     return sendCommand(3, NULL ,0);
 }
-uint8_t WT2003S::playUDiskSong(const char *fileName)
+
+template <class T>
+uint8_t WT2003S<T>::playUDiskSong(const char *fileName)
 {
     commandBytes[0] = WT2003S_UDISK_PLAY_FILE_IN_ROOT;
     commandBytes[1] = fileName[0];
@@ -142,7 +160,9 @@ uint8_t WT2003S::playUDiskSong(const char *fileName)
     commandBytes[4] = fileName[3];
     return sendCommand(5, NULL ,0);
 }
-uint8_t WT2003S::playUDiskDirectoruSong(const char* dir, uint32_t index)
+
+template <class T>
+uint8_t WT2003S<T>::playUDiskDirectoruSong(const char* dir, uint32_t index)
 {
     commandBytes[0] = WT2003S_UDISK_PLAY_INDEX_IN_FOLDER;
     commandBytes[1] = dir[0];
@@ -155,27 +175,36 @@ uint8_t WT2003S::playUDiskDirectoruSong(const char* dir, uint32_t index)
     return sendCommand(8, NULL ,0);
 }
 
-uint8_t WT2003S::pause_or_play()
+template <class T>
+uint8_t WT2003S<T>::pause_or_play()
 {
     commandBytes[0] = WT2003S_PAUSE_OR_PLAY;
     return sendCommand(1, NULL ,0);
 }
-uint8_t WT2003S::stop()
+
+template <class T>
+uint8_t WT2003S<T>::stop()
 {
     commandBytes[0] = WT2003S_STOP;
     return sendCommand(1, NULL ,0);
 }
-uint8_t WT2003S::next()
+
+template <class T>
+uint8_t WT2003S<T>::next()
 {
     commandBytes[0] = WT2003S_NEXT;
     return sendCommand(1, NULL ,0);
 }
-uint8_t WT2003S::previous()
+
+template <class T>
+uint8_t WT2003S<T>::previous()
 {
     commandBytes[0] = WT2003S_PREVIOUS;
     return sendCommand(1, NULL ,0);
 }
-uint8_t WT2003S::volume(uint8_t vol)
+
+template <class T>
+uint8_t WT2003S<T>::volume(uint8_t vol)
 {
     if (vol > WT2003S_MAX_VOLUME)
         vol = WT2003S_MAX_VOLUME;
@@ -183,14 +212,18 @@ uint8_t WT2003S::volume(uint8_t vol)
     commandBytes[1] = vol;
     return sendCommand(2, NULL ,0);
 }
-uint8_t WT2003S::playMode(PLAY_MODE mode)
+
+template <class T>
+uint8_t WT2003S<T>::playMode(PLAY_MODE mode)
 {
     commandBytes[0] = WT2003S_SET_PLAYMODE;
     commandBytes[1] = mode;
     return sendCommand(2, NULL ,0);
 }
 //Note if current playing in spi flash ,this API cannt be used
-uint8_t WT2003S::cutInPlay(STROAGE device, uint32_t index)
+
+template <class T>
+uint8_t WT2003S<T>::cutInPlay(STROAGE device, uint32_t index)
 {   
     commandBytes[0] = WT2003S_SET_CUTIN_MODE;
     commandBytes[1] = device;
@@ -203,7 +236,9 @@ uint8_t WT2003S::cutInPlay(STROAGE device, uint32_t index)
 // 0x01, mp3 file copy ok, config  data error
 // 0x02, mp3 file copy error. config data ok , maybe mp3 file too big to copy
 // 0x03, mp3 file cope ok, config data error, maybe mp3 file too big to copy
-uint8_t WT2003S::copySDtoSPIFlash()
+
+template <class T>
+uint8_t WT2003S<T>::copySDtoSPIFlash()
 {
     commandBytes[0] = WT2003S_COPY_SDTOSPIFLASH;
     return sendCommand(1, NULL ,0);
@@ -214,12 +249,16 @@ uint8_t WT2003S::copySDtoSPIFlash()
 // 0x01, mp3 file copy ok, config  data error
 // 0x02, mp3 file copy error. config data ok , maybe mp3 file too big to copy
 // 0x03, mp3 file cope ok, config data error, maybe mp3 file too big to copy
-uint8_t WT2003S::copyUDisktoSPIFlash()
+
+template <class T>
+uint8_t WT2003S<T>::copyUDisktoSPIFlash()
 {
     commandBytes[0] = WT2003S_COPY_UDISKTOSPIFLASH;
     return sendCommand(1, NULL ,0);
 }
-uint8_t WT2003S::writeUserData(uint16_t address, uint32_t data)
+
+template <class T>
+uint8_t WT2003S<T>::writeUserData(uint16_t address, uint32_t data)
 {
     commandBytes[0] = WT2003S_STORY_USERDATA;
     commandBytes[1] = (address >> 8) & 0xff;
@@ -230,21 +269,26 @@ uint8_t WT2003S::writeUserData(uint16_t address, uint32_t data)
     commandBytes[6] = 0xff & data;
     return sendCommand(7, NULL ,0);
 }
-uint8_t WT2003S::switchWorkDisk(STROAGE disk)
+
+template <class T>
+uint8_t WT2003S<T>::switchWorkDisk(STROAGE disk)
 {
     commandBytes[0] = WT2003S_SWITCH_WORKDATA;
     commandBytes[1] = disk;
     return sendCommand(2, NULL ,0);
 }
 
-int8_t WT2003S::getVolume()
+template <class T>
+int8_t WT2003S<T>::getVolume()
 {
     uint8_t vol;
     commandBytes[0] = WT2003S_GET_VOLUME;
     sendCommand(1, &vol, 2);
     return vol;
 }
-int8_t WT2003S::getStatus()
+
+template <class T>
+int8_t WT2003S<T>::getStatus()
 {
     uint8_t status;
     commandBytes[0] = WT2003S_GET_STATE;
@@ -252,14 +296,16 @@ int8_t WT2003S::getStatus()
     return status;
 }
 
-uint32_t WT2003S::getSPIFlashMp3FileNumber()
+template <class T>
+uint32_t WT2003S<T>::getSPIFlashMp3FileNumber()
 {
     uint8_t num;
     commandBytes[0] = WT2003S_GET_SPIFLASH_SONGCOUNT;
     sendCommand(1, &num, 2);
     return num;
 }
-uint32_t WT2003S::getSDMp3FileNumber()
+template <class T>
+uint32_t WT2003S<T>::getSDMp3FileNumber()
 {
     union {
         uint8_t d[2];
@@ -273,7 +319,8 @@ uint32_t WT2003S::getSDMp3FileNumber()
     num.d[1] = tmp;
     return num.n;
 }
-uint32_t WT2003S::getSDDirectoryMp3FileNumber(const char *dir)
+template <class T>
+uint32_t WT2003S<T>::getSDDirectoryMp3FileNumber(const char *dir)
 {    
     uint8_t num;
     commandBytes[0] = WT2003S_GET_SD_SONGS_IN_FOLDER_COUNT;
@@ -285,14 +332,16 @@ uint32_t WT2003S::getSDDirectoryMp3FileNumber(const char *dir)
     sendCommand(6, &num, 2);
     return num;
 }
-uint32_t WT2003S::getUDiskMp3FileNumber()
+template <class T>
+uint32_t WT2003S<T>::getUDiskMp3FileNumber()
 {
     uint8_t num;
     commandBytes[0] = WT2003S_GET_UDISK_SONGCOUNT;
     sendCommand(1, &num, 2);
     return num;
 }
-uint32_t WT2003S::getUDiskDirectoryMp3FileNumber(const char *dir)
+template <class T>
+uint32_t WT2003S<T>::getUDiskDirectoryMp3FileNumber(const char *dir)
 {
     uint8_t num;
     commandBytes[0] = WT2003S_GET_UDISK_SONGS_IN_FOLDER_COUNT;
@@ -304,7 +353,8 @@ uint32_t WT2003S::getUDiskDirectoryMp3FileNumber(const char *dir)
     sendCommand(6, &num, 2);
     return num;
 }
-uint32_t WT2003S::getTracks()
+template <class T>
+uint32_t WT2003S<T>::getTracks()
 {
     union {
         uint8_t d[2];
@@ -318,19 +368,22 @@ uint32_t WT2003S::getTracks()
     data.d[1] = tmp;
     return data.n;
 }
-void WT2003S::getSongName(char* Songname)
+template <class T>
+void WT2003S<T>::getSongName(char* Songname)
 {
     commandBytes[0] = WT2003S_GET_SONG_NAME_PLAYING;
-    sendCommand(1, Songname, 9);
+    sendCommand(1, (uint8_t*)Songname, 9);
 }
-uint8_t WT2003S::getDiskStatus()
+template <class T>
+uint8_t WT2003S<T>::getDiskStatus()
 {
     uint8_t disk;
     commandBytes[0] = WT2003S_DISKSTATUS;
     sendCommand(1, &disk, 2);
     return disk;
 }
-void WT2003S::getSPIFLashMp3Data(char *data,uint16_t address,uint16_t len)
+template <class T>
+void WT2003S<T>::getSPIFLashMp3Data(char *data,uint16_t address,uint16_t len)
 {
     if(len > 512) len = 512;
     commandBytes[0] = WT2003S_GET_USERDATA;
@@ -340,5 +393,14 @@ void WT2003S::getSPIFLashMp3Data(char *data,uint16_t address,uint16_t len)
 
     commandBytes[4] = (len >> 8) & 0xff;
     commandBytes[5] = 0xff & len;
-    sendCommand(6, data, len + 4);
+    sendCommand(6, (uint8_t*)data, len + 4);
 }
+#ifdef ARDUINO_SAMD_VARIANT_COMPLIANCE
+template class WT2003S<Uart>;
+#endif
+template class WT2003S<HardwareSerial>;
+
+#ifdef __AVR__
+#include <SoftwareSerial.h>
+template class WT2003S<SoftwareSerial>;
+#endif
