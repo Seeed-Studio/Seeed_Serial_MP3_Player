@@ -44,6 +44,13 @@ void WT2003S<T>::init(T &serialPort, uint8_t pin)
     _busyPin = pin;
 }
 
+
+/**************************************************************** 
+ * Function Name: sendCommand
+ * Description: send command  to WT2003S
+ * Parameters: commandLength:uint8_t, *data:uint8_t*, len:uint8_t
+ * Return: 0:success -1:fail
+****************************************************************/ 
 template <class T>
 uint8_t WT2003S<T>::sendCommand(uint8_t commandLength, uint8_t *data, uint8_t len)
 {
@@ -98,6 +105,12 @@ again:
     return 0;
 }
 
+/**************************************************************** 
+ * Function Name: playSPIFlashSong
+ * Description: Specify the music index to play by SPI, the index is decided by the input sequence of the music.
+ * Parameters: index: the music index: 0-65535.
+ * Return: 0:success -1:fail
+****************************************************************/ 
 template <class T>
 uint8_t WT2003S<T>::playSPIFlashSong(uint16_t index)
 {
@@ -107,6 +120,12 @@ uint8_t WT2003S<T>::playSPIFlashSong(uint16_t index)
     return sendCommand(3, NULL ,0);
 }
 
+/**************************************************************** 
+ * Function Name: playSDRootSong
+ * Description: Specify the music index to play in SD Card root directory, the index is decided by the input sequence of the music.
+ * Parameters: index: the music index: 0-65535.
+ * Return: 0:success -1:fail
+****************************************************************/ 
 template <class T>
 uint8_t WT2003S<T>::playSDRootSong(uint32_t index)
 {
@@ -116,6 +135,12 @@ uint8_t WT2003S<T>::playSDRootSong(uint32_t index)
     return sendCommand(3, NULL ,0);    
 }
 
+/**************************************************************** 
+ * Function Name: playSDSong
+ * Description: Specify the music name to play in SD Card
+ * Parameters: fileName: the music name: string
+ * Return: 0:success -1:fail
+****************************************************************/ 
 template <class T>
 uint8_t WT2003S<T>::playSDSong(const char *fileName)
 {
@@ -127,8 +152,14 @@ uint8_t WT2003S<T>::playSDSong(const char *fileName)
     return sendCommand(5, NULL ,0);
 }
 
+/**************************************************************** 
+ * Function Name: playSDDirectorySong
+ * Description: Specify the directory and music index to play in SD Card.
+ * Parameters: dir:directory name, index: the music index: 0-65535.
+ * Return: 0:success -1:fail
+****************************************************************/ 
 template <class T>
-uint8_t WT2003S<T>::playSDDirectoruSong(const char* dir, uint16_t index)
+uint8_t WT2003S<T>::playSDDirectorySong(const char* dir, uint16_t index)
 {
     commandBytes[0] = WT2003S_SD_PLAY_INDEX_IN_FOLDER;
     commandBytes[1] = dir[0];
@@ -141,6 +172,12 @@ uint8_t WT2003S<T>::playSDDirectoruSong(const char* dir, uint16_t index)
     return sendCommand(8, NULL ,0);
 }
 
+/**************************************************************** 
+ * Function Name: playUDiskRootSong
+ * Description: Specify the music index to play in UDISK root directory, the index is decided by the input sequence of the music.
+ * Parameters: index: the music index: 0-65535.
+ * Return: 0:success -1:fail
+****************************************************************/ 
 template <class T>
 uint8_t WT2003S<T>::playUDiskRootSong(uint32_t index)
 {
@@ -150,6 +187,12 @@ uint8_t WT2003S<T>::playUDiskRootSong(uint32_t index)
     return sendCommand(3, NULL ,0);
 }
 
+/**************************************************************** 
+ * Function Name: playUDiskSong
+ * Description: Specify the music name to play in UDISK.
+ * Parameters: fileName: the music name: string
+ * Return: 0:success -1:fail
+****************************************************************/ 
 template <class T>
 uint8_t WT2003S<T>::playUDiskSong(const char *fileName)
 {
@@ -161,8 +204,14 @@ uint8_t WT2003S<T>::playUDiskSong(const char *fileName)
     return sendCommand(5, NULL ,0);
 }
 
+/**************************************************************** 
+ * Function Name: playSDDirectorySong
+ * Description: Specify the directory and music index to play in UDISK.
+ * Parameters: dir:directory name, index: the music index: 0-65535.
+ * Return: 0:success -1:fail
+****************************************************************/ 
 template <class T>
-uint8_t WT2003S<T>::playUDiskDirectoruSong(const char* dir, uint32_t index)
+uint8_t WT2003S<T>::playUDiskDirectorySong(const char* dir, uint32_t index)
 {
     commandBytes[0] = WT2003S_UDISK_PLAY_INDEX_IN_FOLDER;
     commandBytes[1] = dir[0];
@@ -175,6 +224,12 @@ uint8_t WT2003S<T>::playUDiskDirectoruSong(const char* dir, uint32_t index)
     return sendCommand(8, NULL ,0);
 }
 
+/**************************************************************** 
+ * Function Name: pause_or_play
+ * Description: Pause or play the current music.
+ * Parameters: none
+ * Return: 0:success -1:fail
+****************************************************************/ 
 template <class T>
 uint8_t WT2003S<T>::pause_or_play()
 {
@@ -182,6 +237,12 @@ uint8_t WT2003S<T>::pause_or_play()
     return sendCommand(1, NULL ,0);
 }
 
+/**************************************************************** 
+ * Function Name: pause_or_play
+ * Description: stop the current music.
+ * Parameters: none
+ * Return: 0:success -1:fail
+****************************************************************/ 
 template <class T>
 uint8_t WT2003S<T>::stop()
 {
@@ -189,6 +250,12 @@ uint8_t WT2003S<T>::stop()
     return sendCommand(1, NULL ,0);
 }
 
+/**************************************************************** 
+ * Function Name: next
+ * Description: play the next track music.
+ * Parameters: none
+ * Return: 0:success -1:fail
+****************************************************************/ 
 template <class T>
 uint8_t WT2003S<T>::next()
 {
@@ -196,6 +263,12 @@ uint8_t WT2003S<T>::next()
     return sendCommand(1, NULL ,0);
 }
 
+/**************************************************************** 
+ * Function Name: previous
+ * Description: play the pervious track music.
+ * Parameters: none
+ * Return: 0:success -1:fail
+****************************************************************/ 
 template <class T>
 uint8_t WT2003S<T>::previous()
 {
@@ -203,6 +276,12 @@ uint8_t WT2003S<T>::previous()
     return sendCommand(1, NULL ,0);
 }
 
+/**************************************************************** 
+ * Function Name: volume
+ * Description: set the volume
+ * Parameters: vol:the value of volume 0-30
+ * Return: 0:success -1:fail
+****************************************************************/ 
 template <class T>
 uint8_t WT2003S<T>::volume(uint8_t vol)
 {
@@ -213,6 +292,40 @@ uint8_t WT2003S<T>::volume(uint8_t vol)
     return sendCommand(2, NULL ,0);
 }
 
+/**************************************************************** 
+ * Function Name: volumeDown
+ * Description: turn down the volume.
+ * Parameters: none
+ * Return: 0:success -1:fail
+****************************************************************/ 
+template <class T>
+uint8_t WT2003S<T>::volumeDown()
+{
+    uint8_t vol = this->getVolume();
+    return this->volume(++vol);
+}
+
+/**************************************************************** 
+ * Function Name: volumeUp
+ * Description: turn up the volume.
+ * Parameters: none
+ * Return: 0:success -1:fail
+****************************************************************/ 
+template <class T>
+uint8_t WT2003S<T>::volumeUp()
+{
+    uint8_t vol = this->getVolume();
+    if(--vol > 31) vol = 0;
+    return this->volume(vol);
+    
+}
+
+/**************************************************************** 
+ * Function Name: playMode
+ * Description: select the playMode 
+ * Parameters:  mode:SINGLE_SHOT,SINGLE_CYCLE,CYCLE,RANDOM
+ * Return: 0:success -1:fail
+****************************************************************/ 
 template <class T>
 uint8_t WT2003S<T>::playMode(PLAY_MODE mode)
 {
@@ -220,8 +333,14 @@ uint8_t WT2003S<T>::playMode(PLAY_MODE mode)
     commandBytes[1] = mode;
     return sendCommand(2, NULL ,0);
 }
-//Note if current playing in spi flash ,this API cannt be used
 
+/**************************************************************** 
+ * Function Name: cutInPlay
+ * Description: cutInPlay
+ * Parameters: device:UDISK,SD,SPI, index:0-65535
+ * Return: 0:success -1:fail
+ * Note: if current playing in spi flash ,this API cannt be used
+****************************************************************/ 
 template <class T>
 uint8_t WT2003S<T>::cutInPlay(STROAGE device, uint32_t index)
 {   
@@ -230,26 +349,32 @@ uint8_t WT2003S<T>::cutInPlay(STROAGE device, uint32_t index)
     commandBytes[2] = index;
     return sendCommand(3, NULL ,0);
 }
-//Copy SD to SPI-FLASH
-// return: 
-// 0x00, mp3 file copy ok, config data copy ok
-// 0x01, mp3 file copy ok, config  data error
-// 0x02, mp3 file copy error. config data ok , maybe mp3 file too big to copy
-// 0x03, mp3 file cope ok, config data error, maybe mp3 file too big to copy
 
+/**************************************************************** 
+ * Function Name: copySDtoSPIFlash
+ * Description: Copy SD to SPI-FLASH
+ * Parameters: none
+ * Return:    0x00, mp3 file copy ok, config data copy ok
+ *            0x01, mp3 file copy ok, config  data error
+ *            0x02, mp3 file copy error. config data ok , maybe mp3 file too big to copy
+ *            0x03, mp3 file cope ok, config data error, maybe mp3 file too big to copy
+****************************************************************/ 
 template <class T>
 uint8_t WT2003S<T>::copySDtoSPIFlash()
 {
     commandBytes[0] = WT2003S_COPY_SDTOSPIFLASH;
     return sendCommand(1, NULL ,0);
 }
-//Copy UDISK to SPI-FLASH
-// return: 
-// 0x00, mp3 file copy ok, config data copy ok
-// 0x01, mp3 file copy ok, config  data error
-// 0x02, mp3 file copy error. config data ok , maybe mp3 file too big to copy
-// 0x03, mp3 file cope ok, config data error, maybe mp3 file too big to copy
 
+/**************************************************************** 
+ * Function Name: copyUDisktoSPIFlash
+ * Description: Copy UDISK to SPI-FLASH
+ * Parameters: none
+ * Return:    0x00, mp3 file copy ok, config data copy ok
+ *            0x01, mp3 file copy ok, config  data error
+ *            0x02, mp3 file copy error. config data ok , maybe mp3 file too big to copy
+ *            0x03, mp3 file cope ok, config data error, maybe mp3 file too big to copy
+****************************************************************/ 
 template <class T>
 uint8_t WT2003S<T>::copyUDisktoSPIFlash()
 {
@@ -270,6 +395,12 @@ uint8_t WT2003S<T>::writeUserData(uint16_t address, uint32_t data)
     return sendCommand(7, NULL ,0);
 }
 
+/**************************************************************** 
+ * Function Name: switchWorkDisk
+ * Description: switch the work disk
+ * Parameters: device:UDISK,SD,SPIFLASH
+ * Return: 0:success -1:fail
+****************************************************************/ 
 template <class T>
 uint8_t WT2003S<T>::switchWorkDisk(STROAGE disk)
 {
@@ -278,6 +409,12 @@ uint8_t WT2003S<T>::switchWorkDisk(STROAGE disk)
     return sendCommand(2, NULL ,0);
 }
 
+/**************************************************************** 
+ * Function Name: getVolume
+ * Description: get the current volume
+ * Parameters: none
+ * Return: vol:the value of volume:0-30
+****************************************************************/ 
 template <class T>
 int8_t WT2003S<T>::getVolume()
 {
@@ -287,6 +424,12 @@ int8_t WT2003S<T>::getVolume()
     return vol;
 }
 
+/**************************************************************** 
+ * Function Name: getStatus
+ * Description: get the current Status
+ * Parameters: none
+ * Return: status:play(01), stop(02), pause(03)
+****************************************************************/ 
 template <class T>
 int8_t WT2003S<T>::getStatus()
 {
@@ -296,6 +439,12 @@ int8_t WT2003S<T>::getStatus()
     return status;
 }
 
+/**************************************************************** 
+ * Function Name: getSPIFlashMp3FileNumber
+ * Description: Query the total number of music files in SPIFLASH.
+ * Parameters: none
+ * Return: num:the total number of music files in SPIFLAS
+****************************************************************/ 
 template <class T>
 uint32_t WT2003S<T>::getSPIFlashMp3FileNumber()
 {
@@ -304,6 +453,13 @@ uint32_t WT2003S<T>::getSPIFlashMp3FileNumber()
     sendCommand(1, &num, 2);
     return num;
 }
+
+/**************************************************************** 
+ * Function Name: getSDMp3FileNumber
+ * Description: Query the total number of music files in SD.
+ * Parameters: none
+ * Return: num:the total number of music files in SD
+****************************************************************/ 
 template <class T>
 uint32_t WT2003S<T>::getSDMp3FileNumber()
 {
@@ -319,6 +475,13 @@ uint32_t WT2003S<T>::getSDMp3FileNumber()
     num.d[1] = tmp;
     return num.n;
 }
+
+/**************************************************************** 
+ * Function Name: getSDDirectoryMp3FileNumber
+ * Description: Query the total number of music files in specified directory of SD.
+ * Parameters: dir: specified directory name
+ * Return: num:the total number of music files in specified directory of SD.
+****************************************************************/ 
 template <class T>
 uint32_t WT2003S<T>::getSDDirectoryMp3FileNumber(const char *dir)
 {    
@@ -332,6 +495,13 @@ uint32_t WT2003S<T>::getSDDirectoryMp3FileNumber(const char *dir)
     sendCommand(6, &num, 2);
     return num;
 }
+
+/**************************************************************** 
+ * Function Name: getUDiskMp3FileNumber
+ * Description: Query the total number of music files in UDISK.
+ * Parameters: none
+ * Return: num:the total number of music files in SD
+****************************************************************/ 
 template <class T>
 uint32_t WT2003S<T>::getUDiskMp3FileNumber()
 {
@@ -340,6 +510,13 @@ uint32_t WT2003S<T>::getUDiskMp3FileNumber()
     sendCommand(1, &num, 2);
     return num;
 }
+
+/**************************************************************** 
+ * Function Name: getUDiskDirectoryMp3FileNumber
+ * Description: Query the total number of music files in specified directory of Disk.
+ * Parameters: dir: specified directory name
+ * Return: num:the total number of music files in specified directory of Disk.
+****************************************************************/ 
 template <class T>
 uint32_t WT2003S<T>::getUDiskDirectoryMp3FileNumber(const char *dir)
 {
@@ -353,6 +530,14 @@ uint32_t WT2003S<T>::getUDiskDirectoryMp3FileNumber(const char *dir)
     sendCommand(6, &num, 2);
     return num;
 }
+
+
+/**************************************************************** 
+ * Function Name: getTracks
+ * Description:Query the currently playing tracks
+ * Parameters: none
+ * Return: index:the music file index
+****************************************************************/ 
 template <class T>
 uint32_t WT2003S<T>::getTracks()
 {
@@ -368,12 +553,27 @@ uint32_t WT2003S<T>::getTracks()
     data.d[1] = tmp;
     return data.n;
 }
+
+/**************************************************************** 
+ * Function Name: getSongName
+ * Description:Query the song name of the currently playing song
+ * Parameters: *Songname the pointer of Songname
+ * Return: none
+****************************************************************/ 
 template <class T>
 void WT2003S<T>::getSongName(char* Songname)
 {
     commandBytes[0] = WT2003S_GET_SONG_NAME_PLAYING;
     sendCommand(1, (uint8_t*)Songname, 9);
 }
+
+/**************************************************************** 
+ * Function Name: getDiskStatus
+ * Description: Query the current peripheral connection status
+ * Parameters: none
+ * Return: 0X01: no PC connection (BIT3=0), no U disk (BIT2=0), no SD card (BIT1=0), spi-flash (BIT0=1);
+		   0X07: no PC connection (BIT3=0), U disk (BIT2=1), SD card (BIT1=1), spi-flash (BIT0=1);
+****************************************************************/ 
 template <class T>
 uint8_t WT2003S<T>::getDiskStatus()
 {
@@ -382,6 +582,13 @@ uint8_t WT2003S<T>::getDiskStatus()
     sendCommand(1, &disk, 2);
     return disk;
 }
+
+/**************************************************************** 
+ * Function Name: getSPIFLashMp3Data
+ * Description:Read user-cached data at the specified address (CF) (just read config in Flash)
+ * Parameters: *data the pointer of data
+ * Return: none
+****************************************************************/ 
 template <class T>
 void WT2003S<T>::getSPIFLashMp3Data(char *data,uint16_t address,uint16_t len)
 {

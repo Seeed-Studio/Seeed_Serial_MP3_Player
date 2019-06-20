@@ -6,14 +6,62 @@
 # Datatypes (KEYWORD1)
 #######################################
 
-WT2003S	KEYWORD1
+WT2003S KEYWORD1
+KT403A	KEYWORD1
+MP3Player	KEYWORD1
 
+controller	KEYWORD1
 commandBytes	KEYWORD1
 songName	KEYWORD1
+EQUALIZER	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
+init	KEYWORD2
+setDevice	KEYWORD2
+playSongSpecify	KEYWORD2
+playSongIndex	KEYWORD2
+playSongMp3	KEYWORD2
+playSongAdvert	KEYWORD2
+volume	KEYWORD2
+volumeDown	KEYWORD2
+volumeUp	KEYWORD2
+setEqualizer	KEYWORD2
+stop	KEYWORD2
+play	KEYWORD2
+pause	KEYWORD2
+next	KEYWORD2
+previous	KEYWORD2
+pause_or_play	KEYWORD2
+loop	KEYWORD2
+loopFolder	KEYWORD2
+repeat	KEYWORD2
+suffleFolder	KEYWORD2
+playSPIFlashSong	KEYWORD2
+playSDRootSong	KEYWORD2
+playSDSong	KEYWORD2
+playSDDirectoruSong	KEYWORD2
+playUDiskRootSong	KEYWORD2
+playUDiskSong	KEYWORD2
+playUDiskDirectoruSong	KEYWORD2
+playMode	KEYWORD2
+cutInPlay	KEYWORD2
+copySDtoSPIFlash	KEYWORD2
+copyUDisktoSPIFlash	KEYWORD2
+writeUserData	KEYWORD2
+switchWorkDisk	KEYWORD2
+getVolume	KEYWORD2
+getSPIFlashMp3FileNumber	KEYWORD2
+getStatus	KEYWORD2
+getSDMp3FileNumber	KEYWORD2
+getSDDirectoryMp3FileNumber	KEYWORD2
+getUDiskMp3FileNumber	KEYWORD2
+getUDiskDirectoryMp3FileNumber	KEYWORD2
+getTracks	KEYWORD2
+getSongName	KEYWORD2
+getDiskStatus	KEYWORD2
+getSPIFLashMp3Data	KEYWORD2
 
 ######################################
 # Constants (LITERAL1)

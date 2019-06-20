@@ -23,6 +23,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#ifndef __WT2003S__
+#define __WT2003S__
+ 
 #include "Arduino.h"
 
 
@@ -89,6 +92,7 @@ typedef enum {
   UDISK    = 0x02,
 } STROAGE;
 
+
 template <class T>
 class WT2003S
 {
@@ -106,15 +110,17 @@ class WT2003S
 	uint8_t playSPIFlashSong(uint16_t index);
 	uint8_t playSDRootSong(uint32_t index);
 	uint8_t playSDSong(const char *fileName);
-	uint8_t playSDDirectoruSong(const char* dir, uint16_t index);
+	uint8_t playSDDirectorySong(const char* dir, uint16_t index);
 	uint8_t playUDiskRootSong(uint32_t index);
 	uint8_t playUDiskSong(const char *fileName);
-	uint8_t playUDiskDirectoruSong(const char* dir, uint32_t index);
+	uint8_t playUDiskDirectorySong(const char* dir, uint32_t index);
 	uint8_t pause_or_play();
 	uint8_t stop();
 	uint8_t next();
 	uint8_t previous();
 	uint8_t volume(uint8_t vol);
+	uint8_t volumeDown();
+	uint8_t volumeUp();
 	uint8_t playMode(PLAY_MODE mode);
 	uint8_t cutInPlay(STROAGE device, uint32_t index);
 	uint8_t copySDtoSPIFlash();
@@ -134,3 +140,5 @@ class WT2003S
 	uint8_t getDiskStatus();
 	void getSPIFLashMp3Data(char *data,uint16_t address,uint16_t len);
 };
+
+#endif;
