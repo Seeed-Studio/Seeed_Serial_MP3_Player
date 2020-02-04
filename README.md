@@ -1,4 +1,4 @@
-# Grove Serial MP3 Player
+# Grove Serial MP3 Player  [![Build Status](https://travis-ci.com/Seeed-Studio/Seeed_Serial_MP3_Player.svg?branch=master)](https://travis-ci.com/Seeed-Studio/Seeed_Serial_MP3_Player)
 
 This library supports both KT403A and WT2003S. 
 
