@@ -27,15 +27,30 @@
 #include "KT403A_Player.h"
 #include "WT2003S_Player.h"
 
-#include <SoftwareSerial.h>
-SoftwareSerial SSerial(2, 3); // RX, TX
-#define COMSerial SSerial
+
 #define ShowSerial Serial
+#ifdef __AVR__
+    #include <SoftwareSerial.h>
+    SoftwareSerial SSerial(2, 3); // RX, TX
+    #define COMSerial SSerial
+    #define ShowSerial Serial
+    //MP3Player<WT2003S<SoftwareSerial>> Mp3Player;
+    MP3Player<KT403A<SoftwareSerial>> Mp3Player;
+#endif
 
-// uncomment the chip what you choose
-//MP3Player<WT2003S<SoftwareSerial>> Mp3Player;
-MP3Player<KT403A<SoftwareSerial>> Mp3Player;
+#ifdef ARDUINO_SAMD_VARIANT_COMPLIANCE
+    #define COMSerial Serial1
+    #define ShowSerial SerialUSB
+    //MP3Player<WT2003S<Uart>> Mp3Player;
+    MP3Player<KT403A<Uart>> Mp3Player;
+#endif
 
+#ifdef ARDUINO_ARCH_STM32F4
+    #define COMSerial Serial
+    #define ShowSerial SerialUSB
+    //MP3Player<WT2003S<HardwareSerial>> Mp3Player;
+    MP3Player<KT403A<HardwareSerial>> Mp3Player;
+#endif
 
 static uint8_t recv_cmd[8] = {};
 
