@@ -462,15 +462,22 @@ uint32_t WT2003S<T>::getSDMp3FileNumber() {
 ****************************************************************/
 template <class T>
 uint32_t WT2003S<T>::getSDDirectoryMp3FileNumber(const char* dir) {
-    uint8_t num;
+    union {
+        uint8_t d[2];
+        uint16_t n;
+    } num;
+    uint8_t tmp;
     commandBytes[0] = WT2003S_GET_SD_SONGS_IN_FOLDER_COUNT;
     commandBytes[1] = dir[0];
     commandBytes[2] = dir[1];
     commandBytes[3] = dir[2];
     commandBytes[4] = dir[3];
     commandBytes[5] = dir[4];
-    sendCommand(6, &num, 2);
-    return num;
+    sendCommand(6, num.d, 3);
+    tmp = num.d[0];
+    num.d[0] = num.d[1];
+    num.d[1] = tmp;
+    return num.n;
 }
 
 /****************************************************************
