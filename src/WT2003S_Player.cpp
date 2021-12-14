@@ -41,20 +41,15 @@ void WT2003S<T>::init(T& serialPort, uint8_t pin) {
     _busyPin = pin;
 }
 
-
 /****************************************************************
-    Function Name: sendCommand
-    Description: send command  to WT2003S
-    Parameters: commandLength:uint8_t, *data:uint8_t*, len:uint8_t
-    Return: 0:success -1:fail
+    Function Name: send
+    Description: sends command  to WT2003S
+    Parameters: commandLength:uint8_t
 ****************************************************************/
 template <class T>
-uint8_t WT2003S<T>::sendCommand(uint8_t commandLength, uint8_t* data, uint8_t len) {
-    long time;
-    bool is_again = true;
-    int  again_count = 0;
-again:
+void WT2003S<T>::send(uint8_t commandLength) {
     //Clear anything in the buffer
+    delay(100);
     while (_serial->available() > 0) {
         _serial->read();
     }
@@ -70,73 +65,94 @@ again:
 
     _serial->write(crc); //Send CRC
     _serial->write(WT2003S_END_CODE);
+}
 
-    time = millis();
-    if (data == NULL) {
-        while (! _serial->available() && ((millis() - time) < WT2003S_TIMEOUT)) {}
+/****************************************************************
+    Function Name: sendCommand
+    Description: sends command  to WT2003S and retrieves one byte return value
+    Parameters: commandLength:uint8_t, *data:uint8_t*, len:uint8_t
+    Return: >=0:return value -1:fail
+****************************************************************/
+template <class T>
+uint8_t WT2003S<T>::sendCommand(uint8_t commandLength) {
+    for (int attempt = 0 ; attempt < WT2003S_SEND_ATTEMPTS ; ++attempt) {
+        send(commandLength);
+
+        long timestamp = millis();
+        while (! _serial->available() && ((millis() - timestamp) < WT2003S_TIMEOUT)) {}
+
         return _serial->read();
-    } else {
-        time = millis();
-        while ((millis() - time) < WT2003S_TIMEOUT) {
+    }
+    return -1;
+}
+
+/****************************************************************
+    Function Name: sendCommand
+    Description: send command  to WT2003S and retrieves byte array return value
+    Parameters: commandLength:uint8_t, *data:uint8_t*, len:uint8_t
+    Return: 0:success -1:fail
+****************************************************************/
+template <class T>
+uint8_t WT2003S<T>::sendCommand(uint8_t commandLength, uint8_t* data, uint8_t len) {
+
+    if (len > 9) {
+        len = 9;
+    }
+
+    for (int attempt = 0 ; attempt < WT2003S_SEND_ATTEMPTS ; ++attempt) {
+        send(commandLength);
+
+        long timestamp = millis();
+        while ((millis() - timestamp) < WT2003S_TIMEOUT) {
             if (_serial->available()) {
                 if (commandBytes[0] == _serial->read()) {
-                    is_again = false;
-                    break;
+                    for (int i = 1; i < len; i++) {
+                        timestamp = millis();
+                        while (! _serial->available() && ((millis() - timestamp) < WT2003S_TIMEOUT)) {}
+                        data[i - 1] = _serial->read();
+                    }
+                    return 0;
                 }
             }
         }
-        if (is_again) {
-            if (++again_count == 5) {
-                return -1;
-            }
-            Serial.println(String(commandBytes[0], HEX) + "again");
-            goto again;
-        }
-        if (len > 9) {
-            len = 9;
-        }
-        for (int i = 1; i < len; i++) {
-            time = millis();
-            while (! _serial->available() && ((millis() - time) < WT2003S_TIMEOUT)) {}
-            data[i - 1] = _serial->read();
-        }
     }
-    return 0;
+
+    return -1;
 }
 
 /****************************************************************
     Function Name: playSPIFlashSong
     Description: Specify the music index to play by SPI, the index is decided by the input sequence of the music.
     Parameters: index: the music index: 0-65535.
-    Return: 0:success -1:fail
+    Return: >=0:return value -1:fail
 ****************************************************************/
 template <class T>
 uint8_t WT2003S<T>::playSPIFlashSong(uint16_t index) {
     commandBytes[0] = WT2003S_SPIFLASH_PLAY_INDEX;
     commandBytes[1] = (index >> 8) & 0xff;
     commandBytes[2] = 0xff & index;
-    return sendCommand(3, NULL, 0);
+    return sendCommand(3);
 }
 
 /****************************************************************
     Function Name: playSDRootSong
     Description: Specify the music index to play in SD Card root directory, the index is decided by the input sequence of the music.
     Parameters: index: the music index: 0-65535.
-    Return: 0:success -1:fail
+    Return: >=0:return value -1:fail
 ****************************************************************/
 template <class T>
 uint8_t WT2003S<T>::playSDRootSong(uint32_t index) {
     commandBytes[0] = WT2003S_SD_PLAY_INDEX_IN_ROOT;
     commandBytes[1] = (index >> 8) & 0xff;
     commandBytes[2] = 0xff & index;
-    return sendCommand(3, NULL, 0);
+    return sendCommand(3);
 }
 
 /****************************************************************
     Function Name: playSDSong
     Description: Specify the music name to play in SD Card
     Parameters: fileName: the music name: string
-    Return: 0:success -1:fail
+    Return: >=0:return value -1:fail
 ****************************************************************/
 template <class T>
 uint8_t WT2003S<T>::playSDSong(const char* fileName) {
@@ -145,14 +161,14 @@ uint8_t WT2003S<T>::playSDSong(const char* fileName) {
     commandBytes[2] = fileName[1];
     commandBytes[3] = fileName[2];
     commandBytes[4] = fileName[3];
-    return sendCommand(5, NULL, 0);
+    return sendCommand(5);
 }
 
 /****************************************************************
     Function Name: playSDDirectorySong
     Description: Specify the directory and music index to play in SD Card.
     Parameters: dir:directory name, index: the music index: 0-65535.
-    Return: 0:success -1:fail
+    Return: >=0:return value -1:fail
 ****************************************************************/
 template <class T>
 uint8_t WT2003S<T>::playSDDirectorySong(const char* dir, uint16_t index) {
@@ -164,28 +180,28 @@ uint8_t WT2003S<T>::playSDDirectorySong(const char* dir, uint16_t index) {
     commandBytes[5] = dir[4];
     commandBytes[6] = (index >> 8) & 0xff;
     commandBytes[7] = 0xff & index;
-    return sendCommand(8, NULL, 0);
+    return sendCommand(8);
 }
 
 /****************************************************************
     Function Name: playUDiskRootSong
     Description: Specify the music index to play in UDISK root directory, the index is decided by the input sequence of the music.
     Parameters: index: the music index: 0-65535.
-    Return: 0:success -1:fail
+    Return: >=0:return value -1:fail
 ****************************************************************/
 template <class T>
 uint8_t WT2003S<T>::playUDiskRootSong(uint32_t index) {
     commandBytes[0] = WT2003S_UDISK_PLAY_INDEX_IN_ROOT;
     commandBytes[1] = (index >> 8) & 0xff;
     commandBytes[2] = 0xff & index;
-    return sendCommand(3, NULL, 0);
+    return sendCommand(3);
 }
 
 /****************************************************************
     Function Name: playUDiskSong
     Description: Specify the music name to play in UDISK.
     Parameters: fileName: the music name: string
-    Return: 0:success -1:fail
+    Return: >=0:return value -1:fail
 ****************************************************************/
 template <class T>
 uint8_t WT2003S<T>::playUDiskSong(const char* fileName) {
@@ -194,14 +210,14 @@ uint8_t WT2003S<T>::playUDiskSong(const char* fileName) {
     commandBytes[2] = fileName[1];
     commandBytes[3] = fileName[2];
     commandBytes[4] = fileName[3];
-    return sendCommand(5, NULL, 0);
+    return sendCommand(5);
 }
 
 /****************************************************************
     Function Name: playSDDirectorySong
     Description: Specify the directory and music index to play in UDISK.
     Parameters: dir:directory name, index: the music index: 0-65535.
-    Return: 0:success -1:fail
+    Return: >=0:return value -1:fail
 ****************************************************************/
 template <class T>
 uint8_t WT2003S<T>::playUDiskDirectorySong(const char* dir, uint32_t index) {
@@ -213,62 +229,62 @@ uint8_t WT2003S<T>::playUDiskDirectorySong(const char* dir, uint32_t index) {
     commandBytes[5] = dir[4];
     commandBytes[6] = (index >> 8) & 0xff;
     commandBytes[7] = 0xff & index;
-    return sendCommand(8, NULL, 0);
+    return sendCommand(8);
 }
 
 /****************************************************************
     Function Name: pause_or_play
     Description: Pause or play the current music.
     Parameters: none
-    Return: 0:success -1:fail
+    Return: >=0:return value -1:fail
 ****************************************************************/
 template <class T>
 uint8_t WT2003S<T>::pause_or_play() {
     commandBytes[0] = WT2003S_PAUSE_OR_PLAY;
-    return sendCommand(1, NULL, 0);
+    return sendCommand(1);
 }
 
 /****************************************************************
     Function Name: pause_or_play
     Description: stop the current music.
     Parameters: none
-    Return: 0:success -1:fail
+    Return: >=0:return value -1:fail
 ****************************************************************/
 template <class T>
 uint8_t WT2003S<T>::stop() {
     commandBytes[0] = WT2003S_STOP;
-    return sendCommand(1, NULL, 0);
+    return sendCommand(1);
 }
 
 /****************************************************************
     Function Name: next
     Description: play the next track music.
     Parameters: none
-    Return: 0:success -1:fail
+    Return: >=0:return value-1:fail
 ****************************************************************/
 template <class T>
 uint8_t WT2003S<T>::next() {
     commandBytes[0] = WT2003S_NEXT;
-    return sendCommand(1, NULL, 0);
+    return sendCommand(1);
 }
 
 /****************************************************************
     Function Name: previous
     Description: play the pervious track music.
     Parameters: none
-    Return: 0:success -1:fail
+    Return: >=0:return value -1:fail
 ****************************************************************/
 template <class T>
 uint8_t WT2003S<T>::previous() {
     commandBytes[0] = WT2003S_PREVIOUS;
-    return sendCommand(1, NULL, 0);
+    return sendCommand(1);
 }
 
 /****************************************************************
     Function Name: volume
     Description: set the volume
     Parameters: vol:the value of volume 0-30
-    Return: 0:success -1:fail
+    Return: >=0:return value -1:fail
 ****************************************************************/
 template <class T>
 uint8_t WT2003S<T>::volume(uint8_t vol) {
@@ -277,14 +293,14 @@ uint8_t WT2003S<T>::volume(uint8_t vol) {
     }
     commandBytes[0] = WT2003S_SET_VOLUME;
     commandBytes[1] = vol;
-    return sendCommand(2, NULL, 0);
+    return sendCommand(2);
 }
 
 /****************************************************************
     Function Name: volumeDown
     Description: turn down the volume.
     Parameters: none
-    Return: 0:success -1:fail
+    Return: >=0:return value -1:fail
 ****************************************************************/
 template <class T>
 uint8_t WT2003S<T>::volumeDown() {
@@ -296,7 +312,7 @@ uint8_t WT2003S<T>::volumeDown() {
     Function Name: volumeUp
     Description: turn up the volume.
     Parameters: none
-    Return: 0:success -1:fail
+    Return: >=0:return value -1:fail
 ****************************************************************/
 template <class T>
 uint8_t WT2003S<T>::volumeUp() {
@@ -312,20 +328,20 @@ uint8_t WT2003S<T>::volumeUp() {
     Function Name: playMode
     Description: select the playMode
     Parameters:  mode:SINGLE_SHOT,SINGLE_CYCLE,CYCLE,RANDOM
-    Return: 0:success -1:fail
+    Return: >=0:return value -1:fail
 ****************************************************************/
 template <class T>
 uint8_t WT2003S<T>::playMode(PLAY_MODE mode) {
     commandBytes[0] = WT2003S_SET_PLAYMODE;
     commandBytes[1] = mode;
-    return sendCommand(2, NULL, 0);
+    return sendCommand(2);
 }
 
 /****************************************************************
     Function Name: cutInPlay
     Description: cutInPlay
     Parameters: device:UDISK,SD,SPI, index:0-65535
-    Return: 0:success -1:fail
+    Return: >=0:return value -1:fail
     Note: if current playing in spi flash ,this API cannt be used
 ****************************************************************/
 template <class T>
@@ -333,7 +349,7 @@ uint8_t WT2003S<T>::cutInPlay(STROAGE device, uint32_t index) {
     commandBytes[0] = WT2003S_SET_CUTIN_MODE;
     commandBytes[1] = device;
     commandBytes[2] = index;
-    return sendCommand(3, NULL, 0);
+    return sendCommand(3);
 }
 
 /****************************************************************
@@ -348,7 +364,7 @@ uint8_t WT2003S<T>::cutInPlay(STROAGE device, uint32_t index) {
 template <class T>
 uint8_t WT2003S<T>::copySDtoSPIFlash() {
     commandBytes[0] = WT2003S_COPY_SDTOSPIFLASH;
-    return sendCommand(1, NULL, 0);
+    return sendCommand(1);
 }
 
 /****************************************************************
@@ -363,7 +379,7 @@ uint8_t WT2003S<T>::copySDtoSPIFlash() {
 template <class T>
 uint8_t WT2003S<T>::copyUDisktoSPIFlash() {
     commandBytes[0] = WT2003S_COPY_UDISKTOSPIFLASH;
-    return sendCommand(1, NULL, 0);
+    return sendCommand(1);
 }
 
 template <class T>
@@ -375,20 +391,20 @@ uint8_t WT2003S<T>::writeUserData(uint16_t address, uint32_t data) {
     commandBytes[4] = (data >> 16) & 0xff;
     commandBytes[5] = (data >> 8) & 0xff;
     commandBytes[6] = 0xff & data;
-    return sendCommand(7, NULL, 0);
+    return sendCommand(7);
 }
 
 /****************************************************************
     Function Name: switchWorkDisk
     Description: switch the work disk
     Parameters: device:UDISK,SD,SPIFLASH
-    Return: 0:success -1:fail
+    Return: >=0:return value -1:fail
 ****************************************************************/
 template <class T>
 uint8_t WT2003S<T>::switchWorkDisk(STROAGE disk) {
     commandBytes[0] = WT2003S_SWITCH_WORKDATA;
     commandBytes[1] = disk;
-    return sendCommand(2, NULL, 0);
+    return sendCommand(2);
 }
 
 /****************************************************************
@@ -462,22 +478,15 @@ uint32_t WT2003S<T>::getSDMp3FileNumber() {
 ****************************************************************/
 template <class T>
 uint32_t WT2003S<T>::getSDDirectoryMp3FileNumber(const char* dir) {
-    union {
-        uint8_t d[2];
-        uint16_t n;
-    } num;
-    uint8_t tmp;
+    uint8_t num;
     commandBytes[0] = WT2003S_GET_SD_SONGS_IN_FOLDER_COUNT;
     commandBytes[1] = dir[0];
     commandBytes[2] = dir[1];
     commandBytes[3] = dir[2];
     commandBytes[4] = dir[3];
     commandBytes[5] = dir[4];
-    sendCommand(6, num.d, 3);
-    tmp = num.d[0];
-    num.d[0] = num.d[1];
-    num.d[1] = tmp;
-    return num.n;
+    sendCommand(6, &num, 2);
+    return num;
 }
 
 /****************************************************************
@@ -583,11 +592,10 @@ void WT2003S<T>::getSPIFLashMp3Data(char* data, uint16_t address, uint16_t len) 
     sendCommand(6, (uint8_t*)data, len + 4);
 }
 #ifdef ARDUINO_SAMD_VARIANT_COMPLIANCE
-    template class WT2003S<Uart>;
+template class WT2003S<Uart>;
 #endif
 template class WT2003S<HardwareSerial>;
 
-#ifdef __AVR__
-    #include <SoftwareSerial.h>
-    template class WT2003S<SoftwareSerial>;
-#endif
+
+#include <SoftwareSerial.h>
+template class WT2003S<SoftwareSerial>;
