@@ -79,6 +79,9 @@
 #define WT2003S_MAX_VOLUME 0x1F
 #define WT2003S_MIN_VOLUME 0x00
 #define WT2003S_TIMEOUT 1000
+
+#define WT2003S_SEND_ATTEMPTS 5
+
 typedef enum {
     SINGLE_SHOT    = 0x00,
     SINGLE_CYCLE   = 0x01,
@@ -95,13 +98,15 @@ typedef enum {
 
 template <class T>
 class WT2003S {
-  private:
+private:
     T* _serial;
     uint8_t _busyPin;
+    void send(uint8_t commandLength);
+    uint8_t sendCommand(uint8_t commandLength);
     uint8_t sendCommand(uint8_t commandLength, uint8_t* data, uint8_t len);
     uint8_t commandBytes[WT2003S_NUM_CMD_BYTES];
 
-  public:
+public:
     WT2003S();
     void init(T& serialPort);
     void init(T& serialPort, uint8_t pin);
