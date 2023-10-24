@@ -29,6 +29,7 @@
 
 #include "KT403A_Player.h"
 #include "WT2003S_Player.h"
+#include "WT2605C_Player.h"
 
 template <class T>
 class MP3Player {

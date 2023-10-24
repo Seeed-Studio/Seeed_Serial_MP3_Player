@@ -93,7 +93,7 @@ typedef enum {
     SPIFLASH    = 0x00,
     SD   = 0x01,
     UDISK    = 0x02,
-} STROAGE;
+} STORAGE;
 
 
 template <class T>
@@ -126,11 +126,11 @@ public:
     uint8_t volumeDown();
     uint8_t volumeUp();
     uint8_t playMode(PLAY_MODE mode);
-    uint8_t cutInPlay(STROAGE device, uint32_t index);
+    uint8_t cutInPlay(STORAGE device, uint32_t index);
     uint8_t copySDtoSPIFlash();
     uint8_t copyUDisktoSPIFlash();
     uint8_t writeUserData(uint16_t address,  uint32_t data);
-    uint8_t switchWorkDisk(STROAGE disk);
+    uint8_t switchWorkDisk(STORAGE disk);
 
     int8_t getVolume();
     int8_t getStatus();
