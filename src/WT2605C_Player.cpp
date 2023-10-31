@@ -59,7 +59,7 @@ String WT2605C<T>::getStorageName(STORAGE storage) {
 template <class T>
 uint8_t WT2605C<T>::getResult(void) {
     String result = _serial->readString();
-    if (result == "OK") {
+    if (result.startsWith("OK")) {
         return 0;
     }
     return -1;
@@ -169,12 +169,6 @@ uint8_t WT2605C<T>::volumeUp() {
 
 }
 
-/****************************************************************
-    Function Name: playMode
-    Description: select the playMode
-    Parameters:  mode:SINGLE_SHOT,SINGLE_CYCLE,CYCLE,RANDOM
-    Return: >=0:return value -1:fail
-****************************************************************/
 template <class T>
 uint8_t WT2605C<T>::playMode(PLAY_MODE mode) {
     String cmd = String(AT_HEADER AT_CMD_REPEATMODE "=") + String(((uint32_t)mode)+1);
@@ -183,7 +177,7 @@ uint8_t WT2605C<T>::playMode(PLAY_MODE mode) {
 }
 
 template <class T>
-uint8_t WT2003S<T>::cutInPlay(STORAGE device, uint32_t index) {
+uint8_t WT2605C<T>::cutInPlay(STORAGE device, uint32_t index) {
     String cmd = String(AT_HEADER AT_CMD_STEPINPLAY "=") + getStorageName(device) + 
                     String(",") + String(index);
     _serial->println(cmd);
