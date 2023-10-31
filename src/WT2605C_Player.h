@@ -1,7 +1,7 @@
 /**
     The MIT License (MIT)
 
-    Author: MengDu
+    Author: Jiaxuan Weng (jiaxuan.weng@outlook.com)
 
     Copyright (C) 2023  Seeed Technology Co.,Ltd.
 
@@ -28,70 +28,52 @@
 
 #include "Arduino.h"
 
-#define WT2605C_NUM_CMD_BYTES 11
-#define WT2605C_NUM_NAME_BYTES 9
+#define AT_HEADER          "AT+"
+#define AT_CMD_PLAY        "PLAY"
+#define AT_CMD_LPLAY       "LPLAY"
+#define AT_CMD_SPLAY       "SPLAY"
+#define AT_CMD_FPLAY       "FPLAY"
+#define AT_CMD_PP          "PP"
+#define AT_CMD_STOP        "STOP"
+#define AT_CMD_NEXT        "NEXT"
+#define AT_CMD_PREV        "PREV"
+#define AT_CMD_VOL         "VOL"
+#define AT_CMD_VOLUP       "VOLUP"
+#define AT_CMD_VOLDOWN     "VOLDOWN"
+#define AT_CMD_REPEATMODE  "REPEATMODE"
+#define AT_CMD_STEPINPLAY  "STEPINPLAY"
+#define AT_CMD_TOTALTIME   "TOTALTIME"
+#define AT_CMD_CURTIME     "CURTIME"
+#define AT_CMD_CHANGE_DEV  "CHANGE_DEV"
+#define AT_CMD_BUSY        "BUSY"
+#define AT_CMD_VBATPCT     "VBATPCT"
+#define AT_CMD_GVER        "GVER"
+#define AT_CMD_GCFGVER     "GCFGVER"
+#define AT_CMD_POWEROFF    "POWEROFF"
+#define AT_CMD_OTA         "OTA"
+#define AT_CMD_COPY        "COPY"
+#define AT_CMD_BAUD        "BAUD"
 
-//These are the commands that are sent over serial to the WT2605C
-#define WT2605C_SPIFLASH_PLAY_INDEX 0xA0
-#define WT2605C_SD_PLAY_INDEX_IN_ROOT 0xA2
-#define WT2605C_SD_PLAY_FILE_IN_ROOT 0xA3
-#define WT2605C_SD_PLAY_INDEX_IN_FOLDER 0xA4
-#define WT2605C_UDISK_PLAY_INDEX_IN_ROOT 0xA6
-#define WT2605C_UDISK_PLAY_FILE_IN_ROOT 0xA7
-#define WT2605C_UDISK_PLAY_INDEX_IN_FOLDER 0xA8
-#define WT2605C_PAUSE_OR_PLAY 0xAA
-#define WT2605C_STOP 0xAB
-#define WT2605C_NEXT 0xAC
-#define WT2605C_PREVIOUS 0xAD
-#define WT2605C_SET_VOLUME 0xAE //Can take more than 150ms to complete
-#define WT2605C_SET_PLAYMODE 0xAF
-#define WT2605C_SET_PLAYMODE_SINGLE_NO_LOOP 0x00
-#define WT2605C_SET_PLAYMODE_SINGLE_LOOP 0x01
-#define WT2605C_SET_PLAYMODE_ALL_LOOP 0x02
-#define WT2605C_SET_PLAYMODE_RANDOM 0x03
-#define WT2605C_SET_CUTIN_MODE 0xB1
-#define WT2605C_COPY_SDTOSPIFLASH 0xB3
-#define WT2605C_COPY_UDISKTOSPIFLASH 0xB4
-#define WT2605C_STORY_USERDATA 0xB8
-#define WT2605C_ISNEED_RETURNCODE 0xBA
-#define WT2605C_SWITCH_WORKDATA 0xD2
+#define WT2605C_TIMEOUT       1000
+#define WT2605C_SEND_MAX_SIZE 64
 
-#define WT2605C_GET_VOLUME 0xC1
-#define WT2605C_GET_STATE 0xC2
-#define WT2605C_GET_SPIFLASH_SONGCOUNT 0xC3
-#define WT2605C_GET_SD_SONGCOUNT 0xC5
-#define WT2605C_GET_SD_SONGS_IN_FOLDER_COUNT 0xC6
-#define WT2605C_GET_UDISK_SONGCOUNT 0xC7
-#define WT2605C_GET_UDISK_SONGS_IN_FOLDER_COUNT 0xC8
-
-
-#define WT2605C_GET_FILE_PLAYING 0xC9
-#define WT2605C_DISKSTATUS 0xCA
-#define WT2605C_GET_SONG_NAME_PLAYING 0xCB
-#define WT2605C_GET_USERDATA 0xCF
-
-#define WT2605C_START_CODE "AT+"
-#define WT2605C_END_CODE "\r"
-#define WT2605C_NUM_CMD_BYTES 6
-
-#define WT2605C_MAX_VOLUME 0x1F
-#define WT2605C_MIN_VOLUME 0x00
-#define WT2605C_TIMEOUT 1000
-
-#define WT2605C_SEND_ATTEMPTS 5
+#define STORAGE_SPIFLASH   "fat_nor"
+#define STORAGE_SD         "sd0"
+#define STORAGE_UDISK      "udisk0"
 
 typedef enum {
-    SINGLE_SHOT    = 0x00,
-    SINGLE_CYCLE   = 0x01,
-    CYCLE    = 0x02,
-    RANDOM   = 0x03,
+    CYCLE        = 0x00,
+    SINGLE_CYCLE = 0x01,
+    DIR_CYCLE    = 0x02,
+    RANDOM       = 0x03,
+    SINGLE_SHOT  = 0x04,
 } PLAY_MODE;
 
 typedef enum {
-    SPIFLASH    = 0x00,
-    SD   = 0x01,
+    SPIFLASH = 0x00,
+    SD       = 0x01,
     UDISK    = 0x02,
-} STROAGE;
+} STORAGE;
 
 
 template <class T>
@@ -99,35 +81,34 @@ class WT2605C {
 private:
     T* _serial;
     uint8_t _busyPin;
-    void send(uint8_t commandLength);
-    uint8_t sendCommand(uint8_t commandLength);
-    uint8_t sendCommand(uint8_t commandLength, String data, uint8_t len);
-    String commandBytes[WT2605C_NUM_CMD_BYTES];
+    uint8_t getResult();
+    String getStorageName(STORAGE storage);
 
 public:
     WT2605C();
     void init(T& serialPort);
     void init(T& serialPort, uint8_t pin);
 
-    uint8_t playSDRootSong(uint16_t parameters);
-    // uint8_t playSDSong(const char* fileName);
-    // uint8_t playSDDirectorySong(const char* dir, uint16_t index);
-    // uint8_t playUDiskRootSong(uint32_t index);
-    // uint8_t playUDiskSong(const char* fileName);
-    // uint8_t playUDiskDirectorySong(const char* dir, uint32_t index);
-    // uint8_t pause_or_play();
-    // uint8_t stop();
-    // uint8_t next();
-    // uint8_t previous();
-    // uint8_t volume(uint8_t vol);
-    // uint8_t volumeDown();
-    // uint8_t volumeUp();
-    // uint8_t playMode(PLAY_MODE mode);
-    // uint8_t cutInPlay(STROAGE device, uint32_t index);
+    uint8_t playSPIFlashSong(uint16_t index);
+    uint8_t playSDRootSong(uint32_t index);
+    uint8_t playSDSong(const char* fileName);
+    uint8_t playSDDirectorySong(const char* dir, uint16_t index);
+    uint8_t playUDiskRootSong(uint32_t index);
+    uint8_t playUDiskSong(const char* fileName);
+    uint8_t playUDiskDirectorySong(const char* dir, uint32_t index);
+    uint8_t pause_or_play();
+    uint8_t stop();
+    uint8_t next();
+    uint8_t previous();
+    uint8_t volume(uint8_t vol);
+    uint8_t volumeDown();
+    uint8_t volumeUp();
+    uint8_t playMode(PLAY_MODE mode);
+    uint8_t cutInPlay(STORAGE device, uint32_t index);
     // uint8_t copySDtoSPIFlash();
     // uint8_t copyUDisktoSPIFlash();
     // uint8_t writeUserData(uint16_t address,  uint32_t data);
-    // uint8_t switchWorkDisk(STROAGE disk);
+    // uint8_t switchWorkDisk(STORAGE disk);
 
     // int8_t getVolume();
     // int8_t getStatus();
@@ -143,4 +124,3 @@ public:
 };
 
 #endif
-

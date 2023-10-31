@@ -1,9 +1,9 @@
 /**
     The MIT License (MIT)
 
-    Author: MengDu
+    Author: Jiaxuan Weng (jiaxuan.weng@outlook.com)
 
-    Copyright (C) 2023  Seeed Technology Co.,Ltd.
+    Copyright (C) 2019  Seeed Technology Co.,Ltd.
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
     THE SOFTWARE.
 */
 #include "WT2605C_Player.h"
+#include <String.h>
 
 template <class T>
 WT2605C<T>::WT2605C() {
@@ -41,339 +42,167 @@ void WT2605C<T>::init(T& serialPort, uint8_t pin) {
     _busyPin = pin;
 }
 
-/****************************************************************
-    Function Name: send
-    Description: sends command  to WT2605C
-    Parameters: commandLength:uint8_t
-****************************************************************/
 template <class T>
-void WT2605C<T>::send(uint8_t commandLength) {
-    //Clear anything in the buffer
-    delay(100);
-    while (_serial->available() > 0) {
-        _serial->read();
+String WT2605C<T>::getStorageName(STORAGE storage) {
+    switch (storage) {
+        case SPIFLASH:
+            return STORAGE_SPIFLASH;
+        case SD:
+            return STORAGE_SD;
+        case UDISK:
+            return STORAGE_UDISK;
+        default:
+            return "";
     }
-    _serial->print(WT2605C_START_CODE);
-
-    for (byte x = 0; x < commandLength; x++) { //Length + command code + parameter
-        _serial->print(commandBytes[x]); //Send this byte
-    }
-    _serial->print(WT2605C_END_CODE);
 }
 
-/****************************************************************
-    Function Name: sendCommand
-    Description: sends command  to WT2605C and retrieves one byte return value
-    Parameters: commandLength:uint8_t, *data:uint8_t*, len:uint8_t
-    Return: >=0:return value -1:fail
-****************************************************************/
 template <class T>
-uint8_t WT2605C<T>::sendCommand(uint8_t commandLength) {
-    for (int attempt = 0 ; attempt < WT2605C_SEND_ATTEMPTS ; ++attempt) {
-        send(commandLength);
-
-        long timestamp = millis();
-        while (! _serial->available() && ((millis() - timestamp) < WT2605C_TIMEOUT)) {}
-
-        return _serial->read();
+uint8_t WT2605C<T>::getResult(void) {
+    String result = _serial->readString();
+    if (result == "OK") {
+        return 0;
     }
     return -1;
 }
 
-/****************************************************************
-    Function Name: sendCommand
-    Description: send command  to WT2605C and retrieves byte array return value
-    Parameters: commandLength:uint8_t, *data:String, len:uint8_t
-    Return: 0:success -1:fail
-****************************************************************/
 template <class T>
-uint8_t WT2605C<T>::sendCommand(uint8_t commandLength, String data, uint8_t len) {
+uint8_t WT2605C<T>::playSPIFlashSong(uint16_t index) {
+    String cmd = String(AT_HEADER AT_CMD_PLAY "=" STORAGE_SPIFLASH ",") + String((uint32_t)index);
+    _serial->println(cmd);
+    return getResult();
+}
 
-    if (len > 9) {
-        len = 9;
+template <class T>
+uint8_t WT2605C<T>::playSDRootSong(uint32_t index) {
+    String cmd = String(AT_HEADER AT_CMD_PLAY "=" STORAGE_SD ",") + String((uint32_t)index);
+    _serial->println(cmd);
+    return getResult();
+}
+
+template <class T>
+uint8_t WT2605C<T>::playSDSong(const char* fileName) {
+    String cmd = String(AT_HEADER AT_CMD_PLAY "=" STORAGE_SD ",") + String(fileName);
+    _serial->println(cmd);
+    return getResult();
+}
+
+template <class T>
+uint8_t WT2605C<T>::playSDDirectorySong(const char* dir, uint16_t index) {
+    String cmd = String(AT_HEADER AT_CMD_PLAY "=" STORAGE_SD ",") + String(dir) + 
+                    String(",") + String((uint32_t)index);
+    _serial->println(cmd);
+    return getResult();
+}
+
+template <class T>
+uint8_t WT2605C<T>::playUDiskRootSong(uint32_t index) {
+    String cmd = String(AT_HEADER AT_CMD_PLAY "=" STORAGE_UDISK ",") + String((uint32_t)index);
+    _serial->println(cmd);
+    return getResult();
+}
+
+template <class T>
+uint8_t WT2605C<T>::playUDiskSong(const char* fileName) {
+    String cmd = String(AT_HEADER AT_CMD_PLAY "=" STORAGE_UDISK ",") + String(fileName);
+    _serial->println(cmd);
+    return getResult();
+}
+
+template <class T>
+uint8_t WT2605C<T>::playUDiskDirectorySong(const char* dir, uint32_t index) {
+    String cmd = String(AT_HEADER AT_CMD_PLAY "=" STORAGE_UDISK ",")+ String(dir) + 
+                    String(",") + String((uint32_t)index);
+    _serial->println(cmd);
+    return getResult();
+}
+
+template <class T>
+uint8_t WT2605C<T>::pause_or_play() {
+    String cmd = String(AT_HEADER AT_CMD_PP);
+    _serial->println(cmd);
+    return getResult();
+}
+
+template <class T>
+uint8_t WT2605C<T>::stop() {
+    String cmd = String(AT_HEADER AT_CMD_STOP);
+    _serial->println(cmd);
+    return getResult();
+}
+
+template <class T>
+uint8_t WT2605C<T>::next() {
+    String cmd = String(AT_HEADER AT_CMD_NEXT);
+    _serial->println(cmd);
+    return getResult();
+}
+
+template <class T>
+uint8_t WT2605C<T>::previous() {
+    String cmd = String(AT_HEADER AT_CMD_PREV);
+    _serial->println(cmd);
+    return getResult();
+}
+
+template <class T>
+uint8_t WT2605C<T>::volume(uint8_t vol) {
+    if (vol > 31) {
+        vol = 32;
     }
+    String cmd = String(AT_HEADER AT_CMD_VOL "=") + String((uint32_t)vol);
+    _serial->println(cmd);
+    return getResult();
+}
 
-    for (int attempt = 0 ; attempt < WT2605C_SEND_ATTEMPTS ; ++attempt) {
-        send(commandLength);
+template <class T>
+uint8_t WT2605C<T>::volumeDown() {
+    String cmd = String(AT_HEADER AT_CMD_VOLDOWN);
+    _serial->println(cmd);
+    return getResult();
+}
 
-        long timestamp = millis();
-        while ((millis() - timestamp) < WT2605C_TIMEOUT) {
-            if (_serial->available()) {
-                if (commandBytes[0] == _serial->read()) {
-                    for (int i = 1; i < len; i++) {
-                        timestamp = millis();
-                        while (! _serial->available() && ((millis() - timestamp) < WT2605C_TIMEOUT)) {}
-                        data[i - 1] = _serial->read();
-                    }
-                    return 0;
-                }
-            }
-        }
-    }
+template <class T>
+uint8_t WT2605C<T>::volumeUp() {
+    String cmd = String(AT_HEADER AT_CMD_VOLUP);
+    _serial->println(cmd);
+    return getResult();
 
-    return -1;
+}
+
+template <class T>
+uint8_t WT2605C<T>::playMode(PLAY_MODE mode) {
+    String cmd = String(AT_HEADER AT_CMD_REPEATMODE "=") + String(((uint32_t)mode)+1);
+    _serial->println(cmd);
+    return getResult();
+}
+
+template <class T>
+uint8_t WT2605C<T>::cutInPlay(STORAGE device, uint32_t index) {
+    String cmd = String(AT_HEADER AT_CMD_STEPINPLAY "=") + getStorageName(device) + 
+                    String(",") + String(index);
+    _serial->println(cmd);
+    return getResult();
 }
 
 /****************************************************************
-    Function Name: playSDRootSong
-    Description: Specify the music index to play in SD Card root directory, the index is decided by the input sequence of the music.
-    Parameters: index: the music index: 0-65535.
-    Return: >=0:return value -1:fail
+    Function Name: copySDtoSPIFlash
+    Description: Copy SD to SPI-FLASH
+    Parameters: none
+    Return:    0x00, mp3 file copy ok, config data copy ok
+              0x01, mp3 file copy ok, config  data error
+              0x02, mp3 file copy error. config data ok , maybe mp3 file too big to copy
+              0x03, mp3 file cope ok, config data error, maybe mp3 file too big to copy
 ****************************************************************/
-template <class T>
-uint8_t WT2605C<T>::playSDRootSong(uint16_t parameters) {
-    commandBytes[0] = "PLAY";
-    commandBytes[1] = "=";
-    commandBytes[2] = "fat_nor";
-    commandBytes[3] = ",";
-    commandBytes[4] = String(parameters);
-    return sendCommand(5);
-}
-
-/****************************************************************
-    Function Name: playSDSong
-    Description: Specify the music name to play in SD Card
-    Parameters: fileName: the music name: string
-    Return: >=0:return value -1:fail
-****************************************************************/
-// template <class T>
-// uint8_t WT2605C<T>::playSDSong(const char* fileName) {
-//     commandBytes[0] = WT2605C_SD_PLAY_FILE_IN_ROOT;
-//     commandBytes[1] = fileName[0];
-//     commandBytes[2] = fileName[1];
-//     commandBytes[3] = fileName[2];
-//     commandBytes[4] = fileName[3];
-//     return sendCommand(5);
-// }
-
-// /****************************************************************
-//     Function Name: playSDDirectorySong
-//     Description: Specify the directory and music index to play in SD Card.
-//     Parameters: dir:directory name, index: the music index: 0-65535.
-//     Return: >=0:return value -1:fail
-// ****************************************************************/
-// template <class T>
-// uint8_t WT2605C<T>::playSDDirectorySong(const char* dir, uint16_t index) {
-//     commandBytes[0] = WT2605C_SD_PLAY_INDEX_IN_FOLDER;
-//     commandBytes[1] = dir[0];
-//     commandBytes[2] = dir[1];
-//     commandBytes[3] = dir[2];
-//     commandBytes[4] = dir[3];
-//     commandBytes[5] = dir[4];
-//     commandBytes[6] = (index >> 8) & 0xff;
-//     commandBytes[7] = 0xff & index;
-//     return sendCommand(8);
-// }
-
-// /****************************************************************
-//     Function Name: playUDiskRootSong
-//     Description: Specify the music index to play in UDISK root directory, the index is decided by the input sequence of the music.
-//     Parameters: index: the music index: 0-65535.
-//     Return: >=0:return value -1:fail
-// ****************************************************************/
-// template <class T>
-// uint8_t WT2605C<T>::playUDiskRootSong(uint32_t index) {
-//     commandBytes[0] = WT2605C_UDISK_PLAY_INDEX_IN_ROOT;
-//     commandBytes[1] = (index >> 8) & 0xff;
-//     commandBytes[2] = 0xff & index;
-//     return sendCommand(3);
-// }
-
-// /****************************************************************
-//     Function Name: playUDiskSong
-//     Description: Specify the music name to play in UDISK.
-//     Parameters: fileName: the music name: string
-//     Return: >=0:return value -1:fail
-// ****************************************************************/
-// template <class T>
-// uint8_t WT2605C<T>::playUDiskSong(const char* fileName) {
-//     commandBytes[0] = WT2605C_UDISK_PLAY_FILE_IN_ROOT;
-//     commandBytes[1] = fileName[0];
-//     commandBytes[2] = fileName[1];
-//     commandBytes[3] = fileName[2];
-//     commandBytes[4] = fileName[3];
-//     return sendCommand(5);
-// }
-
-// /****************************************************************
-//     Function Name: playSDDirectorySong
-//     Description: Specify the directory and music index to play in UDISK.
-//     Parameters: dir:directory name, index: the music index: 0-65535.
-//     Return: >=0:return value -1:fail
-// ****************************************************************/
-// template <class T>
-// uint8_t WT2605C<T>::playUDiskDirectorySong(const char* dir, uint32_t index) {
-//     commandBytes[0] = WT2605C_UDISK_PLAY_INDEX_IN_FOLDER;
-//     commandBytes[1] = dir[0];
-//     commandBytes[2] = dir[1];
-//     commandBytes[3] = dir[2];
-//     commandBytes[4] = dir[3];
-//     commandBytes[5] = dir[4];
-//     commandBytes[6] = (index >> 8) & 0xff;
-//     commandBytes[7] = 0xff & index;
-//     return sendCommand(8);
-// }
-
-// /****************************************************************
-//     Function Name: pause_or_play
-//     Description: Pause or play the current music.
-//     Parameters: none
-//     Return: >=0:return value -1:fail
-// ****************************************************************/
-// template <class T>
-// uint8_t WT2605C<T>::pause_or_play() {
-//     commandBytes[0] = WT2605C_PAUSE_OR_PLAY;
-//     return sendCommand(1);
-// }
-
-// /****************************************************************
-//     Function Name: pause_or_play
-//     Description: stop the current music.
-//     Parameters: none
-//     Return: >=0:return value -1:fail
-// ****************************************************************/
-// template <class T>
-// uint8_t WT2605C<T>::stop() {
-//     commandBytes[0] = WT2605C_STOP;
-//     return sendCommand(1);
-// }
-
-// /****************************************************************
-//     Function Name: next
-//     Description: play the next track music.
-//     Parameters: none
-//     Return: >=0:return value-1:fail
-// ****************************************************************/
-// template <class T>
-// uint8_t WT2605C<T>::next() {
-//     commandBytes[0] = WT2605C_NEXT;
-//     return sendCommand(1);
-// }
-
-// /****************************************************************
-//     Function Name: previous
-//     Description: play the pervious track music.
-//     Parameters: none
-//     Return: >=0:return value -1:fail
-// ****************************************************************/
-// template <class T>
-// uint8_t WT2605C<T>::previous() {
-//     commandBytes[0] = WT2605C_PREVIOUS;
-//     return sendCommand(1);
-// }
-
-// /****************************************************************
-//     Function Name: volume
-//     Description: set the volume
-//     Parameters: vol:the value of volume 0-30
-//     Return: >=0:return value -1:fail
-// ****************************************************************/
-// template <class T>
-// uint8_t WT2605C<T>::volume(uint8_t vol) {
-//     if (vol > WT2605C_MAX_VOLUME) {
-//         vol = WT2605C_MAX_VOLUME;
-//     }
-//     commandBytes[0] = WT2605C_SET_VOLUME;
-//     commandBytes[1] = vol;
-//     return sendCommand(2);
-// }
-
-// /****************************************************************
-//     Function Name: volumeDown
-//     Description: turn down the volume.
-//     Parameters: none
-//     Return: >=0:return value -1:fail
-// ****************************************************************/
-// template <class T>
-// uint8_t WT2605C<T>::volumeDown() {
-//     uint8_t vol = this->getVolume();
-//     return this->volume(++vol);
-// }
-
-// /****************************************************************
-//     Function Name: volumeUp
-//     Description: turn up the volume.
-//     Parameters: none
-//     Return: >=0:return value -1:fail
-// ****************************************************************/
-// template <class T>
-// uint8_t WT2605C<T>::volumeUp() {
-//     uint8_t vol = this->getVolume();
-//     if (--vol > 31) {
-//         vol = 0;
-//     }
-//     return this->volume(vol);
-
-// }
-
-// /****************************************************************
-//     Function Name: playMode
-//     Description: select the playMode
-//     Parameters:  mode:SINGLE_SHOT,SINGLE_CYCLE,CYCLE,RANDOM
-//     Return: >=0:return value -1:fail
-// ****************************************************************/
-// template <class T>
-// uint8_t WT2605C<T>::playMode(PLAY_MODE mode) {
-//     commandBytes[0] = WT2605C_SET_PLAYMODE;
-//     commandBytes[1] = mode;
-//     return sendCommand(2);
-// }
-
-// /****************************************************************
-//     Function Name: cutInPlay
-//     Description: cutInPlay
-//     Parameters: device:UDISK,SD,SPI, index:0-65535
-//     Return: >=0:return value -1:fail
-//     Note: if current playing in spi flash ,this API cannt be used
-// ****************************************************************/
-// template <class T>
-// uint8_t WT2605C<T>::cutInPlay(STROAGE device, uint32_t index) {
-//     commandBytes[0] = WT2605C_SET_CUTIN_MODE;
-//     commandBytes[1] = device;
-//     commandBytes[2] = index;
-//     return sendCommand(3);
-// }
-
-// /****************************************************************
-//     Function Name: copySDtoSPIFlash
-//     Description: Copy SD to SPI-FLASH
-//     Parameters: none
-//     Return:    0x00, mp3 file copy ok, config data copy ok
-//               0x01, mp3 file copy ok, config  data error
-//               0x02, mp3 file copy error. config data ok , maybe mp3 file too big to copy
-//               0x03, mp3 file cope ok, config data error, maybe mp3 file too big to copy
-// ****************************************************************/
 // template <class T>
 // uint8_t WT2605C<T>::copySDtoSPIFlash() {
 //     commandBytes[0] = WT2605C_COPY_SDTOSPIFLASH;
 //     return sendCommand(1);
 // }
 
-// /****************************************************************
-//     Function Name: copyUDisktoSPIFlash
-//     Description: Copy UDISK to SPI-FLASH
-//     Parameters: none
-//     Return:    0x00, mp3 file copy ok, config data copy ok
-//               0x01, mp3 file copy ok, config  data error
-//               0x02, mp3 file copy error. config data ok , maybe mp3 file too big to copy
-//               0x03, mp3 file cope ok, config data error, maybe mp3 file too big to copy
-// ****************************************************************/
 // template <class T>
 // uint8_t WT2605C<T>::copyUDisktoSPIFlash() {
 //     commandBytes[0] = WT2605C_COPY_UDISKTOSPIFLASH;
 //     return sendCommand(1);
-// }
-
-// template <class T>
-// uint8_t WT2605C<T>::writeUserData(uint16_t address, uint32_t data) {
-//     commandBytes[0] = WT2605C_STORY_USERDATA;
-//     commandBytes[1] = (address >> 8) & 0xff;
-//     commandBytes[2] = 0xff & address;
-//     commandBytes[3] = (data >> 24) & 0xff;
-//     commandBytes[4] = (data >> 16) & 0xff;
-//     commandBytes[5] = (data >> 8) & 0xff;
-//     commandBytes[6] = 0xff & data;
-//     return sendCommand(7);
 // }
 
 // /****************************************************************
@@ -383,10 +212,10 @@ uint8_t WT2605C<T>::playSDRootSong(uint16_t parameters) {
 //     Return: >=0:return value -1:fail
 // ****************************************************************/
 // template <class T>
-// uint8_t WT2605C<T>::switchWorkDisk(STROAGE disk) {
-//     commandBytes[0] = WT2605C_SWITCH_WORKDATA;
-//     commandBytes[1] = disk;
-//     return sendCommand(2);
+// uint8_t WT2605C<T>::switchWorkDisk(STORAGE disk) {
+//     String cmd = String(AT_HEADER AT_CMD_CHANGE_DEV "=") + getStorageName(mode);
+//     _serial->println(cmd);
+//     return getResult();
 // }
 
 // /****************************************************************
