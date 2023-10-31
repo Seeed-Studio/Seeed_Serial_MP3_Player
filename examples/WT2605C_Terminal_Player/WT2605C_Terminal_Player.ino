@@ -1,4 +1,4 @@
-#include "WT2003S_Player.h"
+#include "WT2605C_Player.h"
 
 #ifdef __AVR__
     #include <SoftwareSerial.h>
@@ -6,21 +6,21 @@
     #define COMSerial SSerial
     #define ShowSerial Serial
 
-    WT2003S<SoftwareSerial> Mp3Player;
+    WT2605C<SoftwareSerial> Mp3Player;
 #endif
 
 #ifdef ARDUINO_SAMD_VARIANT_COMPLIANCE
     #define COMSerial Serial1
     #define ShowSerial SerialUSB
 
-    WT2003S<Uart> Mp3Player;
+    WT2605C<Uart> Mp3Player;
 #endif
 
 #ifdef ARDUINO_ARCH_STM32F4
     #define COMSerial Serial
     #define ShowSerial SerialUSB
 
-    WT2003S<HardwareSerial> Mp3Player;
+    WT2605C<HardwareSerial> Mp3Player;
 #endif
 
 
@@ -113,7 +113,7 @@ void printSongs() {
 void setup() {
     while (!ShowSerial);
     ShowSerial.begin(9600);
-    COMSerial.begin(9600);
+    COMSerial.begin(115200);
     ShowSerial.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++");
     Mp3Player.init(COMSerial);
 

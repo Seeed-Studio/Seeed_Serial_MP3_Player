@@ -59,6 +59,7 @@ String WT2605C<T>::getStorageName(STORAGE storage) {
 template <class T>
 uint8_t WT2605C<T>::getResult(void) {
     String result = _serial->readString();
+    result.trim();
     if (result == "OK") {
         return 0;
     }
