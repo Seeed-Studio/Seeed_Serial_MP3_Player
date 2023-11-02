@@ -41,10 +41,8 @@ void loop() {
     
     if(input.startsWith("v")) {
       int vol = input.substring(1).toInt();
-      int err = Mp3Player.volume(vol);
-      ShowSerial.println(err);
-      if(!err) ShowSerial.println("Volume set to: " + String(vol));
-      else ShowSerial.println("ERROR");
+      Mp3Player.volume(vol);
+      ShowSerial.println("Volume set to: " + String(vol));
     }
     
     else if(input.startsWith("m")) {
