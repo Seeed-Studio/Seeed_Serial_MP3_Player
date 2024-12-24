@@ -327,11 +327,11 @@ uint8_t WT2003S<T>::volumeUp() {
 /****************************************************************
     Function Name: playMode
     Description: select the playMode
-    Parameters:  mode:SINGLE_SHOT,SINGLE_CYCLE,CYCLE,RANDOM
+    Parameters:  mode:SINGLE_SHOT,SINGLE_CYCLE,WT2003S_CYCLE,RANDOM
     Return: >=0:return value -1:fail
 ****************************************************************/
 template <class T>
-uint8_t WT2003S<T>::playMode(PLAY_MODE mode) {
+uint8_t WT2003S<T>::playMode(WT2003S_PLAY_MODE mode) {
     commandBytes[0] = WT2003S_SET_PLAYMODE;
     commandBytes[1] = mode;
     return sendCommand(2);
@@ -345,7 +345,7 @@ uint8_t WT2003S<T>::playMode(PLAY_MODE mode) {
     Note: if current playing in spi flash ,this API cannt be used
 ****************************************************************/
 template <class T>
-uint8_t WT2003S<T>::cutInPlay(STORAGE device, uint32_t index) {
+uint8_t WT2003S<T>::cutInPlay(WT2003S_STORAGE device, uint32_t index) {
     commandBytes[0] = WT2003S_SET_CUTIN_MODE;
     commandBytes[1] = device;
     commandBytes[2] = index;
@@ -401,7 +401,7 @@ uint8_t WT2003S<T>::writeUserData(uint16_t address, uint32_t data) {
     Return: >=0:return value -1:fail
 ****************************************************************/
 template <class T>
-uint8_t WT2003S<T>::switchWorkDisk(STORAGE disk) {
+uint8_t WT2003S<T>::switchWorkDisk(WT2003S_STORAGE disk) {
     commandBytes[0] = WT2003S_SWITCH_WORKDATA;
     commandBytes[1] = disk;
     return sendCommand(2);
@@ -591,11 +591,18 @@ void WT2003S<T>::getSPIFLashMp3Data(char* data, uint16_t address, uint16_t len) 
     commandBytes[5] = 0xff & len;
     sendCommand(6, (uint8_t*)data, len + 4);
 }
-#ifdef ARDUINO_SAMD_VARIANT_COMPLIANCE
+
+#if defined(ARDUINO_SAMD_VARIANT_COMPLIANCE) || defined(NRF52840_XXAA)
 template class WT2003S<Uart>;
 #endif
 template class WT2003S<HardwareSerial>;
 
-
+#ifdef __AVR__
 #include <SoftwareSerial.h>
 template class WT2003S<SoftwareSerial>;
+#endif
+
+#if defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350) || defined(ARDUINO_XIAO_RA4M1) 
+#include <SoftwareSerial.h>
+template class WT2003S<SoftwareSerial>;
+#endif

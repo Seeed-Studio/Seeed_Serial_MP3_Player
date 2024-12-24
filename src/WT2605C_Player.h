@@ -62,18 +62,18 @@
 #define STORAGE_UDISK      "udisk0"
 
 typedef enum {
-    CYCLE        = 0x00,
-    SINGLE_CYCLE = 0x01,
-    DIR_CYCLE    = 0x02,
-    RANDOM       = 0x03,
-    SINGLE_SHOT  = 0x04,
-} PLAY_MODE;
+    WT2605C_CYCLE        = 0x00,
+    WT2605C_SINGLE_CYCLE = 0x01,
+    WT2605C_DIR_CYCLE    = 0x02,
+    WT2605C_RANDOM       = 0x03,
+    WT2605C_SINGLE_SHOT  = 0x04,
+} WT2605C_PLAY_MODE;
 
 typedef enum {
-    SPIFLASH = 0x00,
-    SD       = 0x01,
-    UDISK    = 0x02,
-} STORAGE;
+    WT2605C_SPIFLASH = 0x00,
+    WT2605C_SD       = 0x01,
+    WT2605C_UDISK    = 0x02,
+} WT2605C_STORAGE;
 
 
 template <class T>
@@ -82,7 +82,7 @@ private:
     T* _serial;
     uint8_t _busyPin;
     uint8_t getResult();
-    String getStorageName(STORAGE storage);
+    String getStorageName(WT2605C_STORAGE storage);
 
 public:
     WT2605C();
@@ -103,12 +103,12 @@ public:
     uint8_t volume(uint8_t vol);
     uint8_t volumeDown();
     uint8_t volumeUp();
-    uint8_t playMode(PLAY_MODE mode);
-    uint8_t cutInPlay(STORAGE device, uint32_t index);
+    uint8_t playMode(WT2605C_PLAY_MODE mode);
+    uint8_t cutInPlay(WT2605C_STORAGE device, uint32_t index);
     // uint8_t copySDtoSPIFlash();
     // uint8_t copyUDisktoSPIFlash();
     // uint8_t writeUserData(uint16_t address,  uint32_t data);
-    // uint8_t switchWorkDisk(STORAGE disk);
+    // uint8_t switchWorkDisk(WT2605C_STORAGE disk);
 
     // int8_t getVolume();
     // int8_t getStatus();

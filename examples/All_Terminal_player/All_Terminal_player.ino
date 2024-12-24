@@ -23,12 +23,11 @@
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
     THE SOFTWARE.
 */
-#include "SeeedGroveMP3.h"
-#include "KT403A_Player.h"
-#include "WT2003S_Player.h"
+#include <SeeedGroveMP3.h>
+#include <KT403A_Player.h>
+#include <WT2003S_Player.h>
 
 
-#define ShowSerial Serial
 #ifdef __AVR__
     #include <SoftwareSerial.h>
     SoftwareSerial SSerial(2, 3); // RX, TX
@@ -38,12 +37,36 @@
     MP3Player<KT403A<SoftwareSerial>> Mp3Player;
 #endif
 
-#ifdef ARDUINO_SAMD_VARIANT_COMPLIANCE
+#if defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350) ||  defined(ARDUINO_XIAO_RA4M1) 
+    #include <SoftwareSerial.h>
+    SoftwareSerial SSerial(D7, D6); // RX, TX
+    #define COMSerial SSerial
+    #define ShowSerial Serial
+
+    MP3Player<KT403A<SoftwareSerial>> Mp3Player;
+#endif
+
+
+#if  defined(CONFIG_IDF_TARGET_ESP32C3) || defined(CONFIG_IDF_TARGET_ESP32C6) || defined(CONFIG_IDF_TARGET_ESP32S3)
+    #define COMSerial Serial1
+    #define ShowSerial Serial
+
+    MP3Player<KT403A<HardwareSerial>> Mp3Player;
+#endif
+
+
+#ifdef SEEED_XIAO_M0
+    #define COMSerial Serial1
+    #define ShowSerial Serial
+
+    MP3Player<KT403A<Uart>> Mp3Player;
+#elif defined(ARDUINO_SAMD_VARIANT_COMPLIANCE)
     #define COMSerial Serial1
     #define ShowSerial SerialUSB
-    //MP3Player<WT2003S<Uart>> Mp3Player;
+
     MP3Player<KT403A<Uart>> Mp3Player;
 #endif
+
 
 #ifdef ARDUINO_ARCH_STM32F4
     #define COMSerial Serial
@@ -51,6 +74,18 @@
     //MP3Player<WT2003S<HardwareSerial>> Mp3Player;
     MP3Player<KT403A<HardwareSerial>> Mp3Player;
 #endif
+
+
+#if defined(NRF52840_XXAA)
+    #ifdef USE_TINYUSB
+    #include <Adafruit_TinyUSB.h>
+    #endif
+    #define COMSerial Serial1
+    #define ShowSerial Serial
+
+    MP3Player<KT403A<Uart>> Mp3Player;
+#endif
+
 
 static uint8_t recv_cmd[8] = {};
 
@@ -61,7 +96,15 @@ void setup() {
     ShowSerial.begin(9600);
     COMSerial.begin(9600);
     while (!ShowSerial);
+    #if defined(ARDUINO_XIAO_RA4M1) 
+    delay(2000);
+    #else
     while (!COMSerial);
+    #endif
+    
+    
+    
+    
     delay(100);
     Mp3Player.controller->init(COMSerial);
     printMenu();

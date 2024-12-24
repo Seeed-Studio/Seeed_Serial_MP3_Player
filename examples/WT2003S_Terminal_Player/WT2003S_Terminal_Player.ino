@@ -5,46 +5,80 @@
     SoftwareSerial SSerial(2, 3); // RX, TX
     #define COMSerial SSerial
     #define ShowSerial Serial
+    //MP3Player<WT2003S<SoftwareSerial>> Mp3Player;
+    WT2003S<SoftwareSerial> Mp3Player;
+#endif
+
+#if defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350) ||  defined(ARDUINO_XIAO_RA4M1) 
+    #include <SoftwareSerial.h>
+    SoftwareSerial SSerial(D7, D6); // RX, TX
+    #define COMSerial SSerial
+    #define ShowSerial Serial
 
     WT2003S<SoftwareSerial> Mp3Player;
 #endif
 
-#ifdef ARDUINO_SAMD_VARIANT_COMPLIANCE
+
+#if  defined(CONFIG_IDF_TARGET_ESP32C3) || defined(CONFIG_IDF_TARGET_ESP32C6) || defined(CONFIG_IDF_TARGET_ESP32S3)
     #define COMSerial Serial1
-    #define ShowSerial SerialUSB
+    #define ShowSerial Serial
+
+    WT2003S<HardwareSerial> Mp3Player;
+#endif
+
+
+#ifdef SEEED_XIAO_M0
+    #define COMSerial Serial1
+    #define ShowSerial Serial
 
     WT2003S<Uart> Mp3Player;
+#elif defined(ARDUINO_SAMD_VARIANT_COMPLIANCE)
+    #define COMSerial Serial1
+    #define ShowSerial SerialUSB
+    WT2003S<Uart> Mp3Player;
 #endif
+
 
 #ifdef ARDUINO_ARCH_STM32F4
     #define COMSerial Serial
     #define ShowSerial SerialUSB
-
+    //MP3Player<WT2003S<HardwareSerial>> Mp3Player;
     WT2003S<HardwareSerial> Mp3Player;
+#endif
+
+
+#if defined(NRF52840_XXAA)
+    #ifdef USE_TINYUSB
+    #include <Adafruit_TinyUSB.h>
+    #endif
+    #define COMSerial Serial1
+    #define ShowSerial Serial
+
+    WT2003S<Uart> Mp3Player;
 #endif
 
 
 uint8_t vol = 10;
 uint32_t spi_flash_songs = 0;
 uint32_t sd_songs = 0;
-STORAGE workdisk = SD;
+WT2003S_STORAGE workdisk = WT2003S_SD;
 struct Play_history {
     uint8_t disk;
     uint16_t index;
     char name[8];
 }* SPISong, *SDSong;
 
-void readSongName(struct Play_history* ph, uint32_t num, STORAGE disk) {
+void readSongName(struct Play_history* ph, uint32_t num, WT2003S_STORAGE disk) {
     Mp3Player.volume(0);
     delay(100);
     switch (disk) {
-        case SPIFLASH:
+        case WT2003S_SPIFLASH:
             Mp3Player.playSPIFlashSong(0x0001);
             break;
-        case SD:
+        case WT2003S_SD:
             Mp3Player.playSDRootSong(0x0001);
             break;
-        case UDISK:
+        case WT2003S_UDISK:
             Mp3Player.playUDiskRootSong(0x0001);
             break;
     }
@@ -70,7 +104,7 @@ void getAllSong() {
     ShowSerial.println(spi_flash_songs);
     if (spi_flash_songs > 0) {
         SPISong = (struct Play_history*)malloc((spi_flash_songs + 1) * sizeof(struct Play_history));
-        readSongName(SPISong, spi_flash_songs, SPIFLASH);
+        readSongName(SPISong, spi_flash_songs, WT2003S_SPIFLASH);
     }
     if (diskstatus && 0x02) { // have SD
         sd_songs = Mp3Player.getSDMp3FileNumber();
@@ -79,7 +113,7 @@ void getAllSong() {
         if (sd_songs > 0) {
             SDSong = (struct Play_history*)malloc((sd_songs + 1) * sizeof(struct Play_history));
             ShowSerial.println("1...");
-            readSongName(SDSong, sd_songs, SD);
+            readSongName(SDSong, sd_songs, WT2003S_SD);
         }
     }
 }
@@ -171,19 +205,19 @@ void loop() {
                     break;
                 }
             case 'w': {
-                    Mp3Player.playMode(SINGLE_SHOT);
+                    Mp3Player.playMode(WT2003S_SINGLE_SHOT);
                     break;
                 }
             case 'x': {
-                    Mp3Player.playMode(SINGLE_CYCLE);
+                    Mp3Player.playMode(WT2003S_SINGLE_CYCLE);
                     break;
                 }
             case 'y': {
-                    Mp3Player.playMode(CYCLE);
+                    Mp3Player.playMode(WT2003S_CYCLE);
                     break;
                 }
             case 'z': {
-                    Mp3Player.playMode(RANDOM);
+                    Mp3Player.playMode(WT2003S_RANDOM);
                     break;
                 }
             case 'c': {
@@ -200,12 +234,12 @@ void loop() {
             case '8':
             case '9':
                 ShowSerial.print("play:");
-                if (workdisk == SD) {
+                if (workdisk == WT2003S_SD) {
                     Mp3Player.playSDRootSong(cmd - '0' - 1);
                     ShowSerial.print(cmd + ": ");
                     ShowSerial.print(SDSong[cmd - '0'].name);
                 }
-                if (workdisk == SPIFLASH) {
+                if (workdisk == WT2003S_SPIFLASH) {
                     Mp3Player.playSPIFlashSong(cmd - '0' - 1);
                     ShowSerial.print(cmd + ": ");
                     ShowSerial.print(SPISong[cmd - '0'].name);

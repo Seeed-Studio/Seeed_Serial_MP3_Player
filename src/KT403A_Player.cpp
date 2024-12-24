@@ -453,12 +453,18 @@ uint8_t KT403A<T>::suffleFolder(uint8_t floder) {
     return sendCommand(4, NULL, 0);
 }
 
-#ifdef ARDUINO_SAMD_VARIANT_COMPLIANCE
+
+#if defined(ARDUINO_SAMD_VARIANT_COMPLIANCE) || defined(NRF52840_XXAA)
     template class KT403A<Uart>;
 #endif
 template class KT403A<HardwareSerial>;
 
 #ifdef __AVR__
+    #include <SoftwareSerial.h>
+    template class KT403A<SoftwareSerial>;
+#endif
+
+#if defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350) || defined(ARDUINO_XIAO_RA4M1) 
     #include <SoftwareSerial.h>
     template class KT403A<SoftwareSerial>;
 #endif

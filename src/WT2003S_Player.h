@@ -83,17 +83,17 @@
 #define WT2003S_SEND_ATTEMPTS 5
 
 typedef enum {
-    SINGLE_SHOT    = 0x00,
-    SINGLE_CYCLE   = 0x01,
-    CYCLE    = 0x02,
-    RANDOM   = 0x03,
-} PLAY_MODE;
+    WT2003S_SINGLE_SHOT    = 0x00,
+    WT2003S_SINGLE_CYCLE   = 0x01,
+    WT2003S_CYCLE    = 0x02,
+    WT2003S_RANDOM   = 0x03,
+} WT2003S_PLAY_MODE;
 
 typedef enum {
-    SPIFLASH    = 0x00,
-    SD   = 0x01,
-    UDISK    = 0x02,
-} STORAGE;
+    WT2003S_SPIFLASH    = 0x00,
+    WT2003S_SD   = 0x01,
+    WT2003S_UDISK    = 0x02,
+} WT2003S_STORAGE;
 
 
 template <class T>
@@ -125,12 +125,12 @@ public:
     uint8_t volume(uint8_t vol);
     uint8_t volumeDown();
     uint8_t volumeUp();
-    uint8_t playMode(PLAY_MODE mode);
-    uint8_t cutInPlay(STORAGE device, uint32_t index);
+    uint8_t playMode(WT2003S_PLAY_MODE mode);
+    uint8_t cutInPlay(WT2003S_STORAGE device, uint32_t index);
     uint8_t copySDtoSPIFlash();
     uint8_t copyUDisktoSPIFlash();
     uint8_t writeUserData(uint16_t address,  uint32_t data);
-    uint8_t switchWorkDisk(STORAGE disk);
+    uint8_t switchWorkDisk(WT2003S_STORAGE disk);
 
     int8_t getVolume();
     int8_t getStatus();
