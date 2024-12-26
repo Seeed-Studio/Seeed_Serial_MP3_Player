@@ -1,6 +1,6 @@
 # Grove Serial MP3 Player  [![Build Status](https://travis-ci.com/Seeed-Studio/Seeed_Serial_MP3_Player.svg?branch=master)](https://travis-ci.com/Seeed-Studio/Seeed_Serial_MP3_Player)
 
-This library supports both KT403A and WT2003S. 
+This library supports KT403A and WT2003 and WT2605C.
 
 <img src=https://statics3.seeedstudio.com/images/product/107020008%202.jpg width=300>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<img src=https://statics3.seeedstudio.com/product/107020008%202_02.jpg width=300>
 
@@ -9,6 +9,10 @@ This library supports both KT403A and WT2003S.
 <img src=img/WT2003S.jpg width=300 height=200>&emsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<img src=img/sdcard.jpg width=300 height=200>
 
 Grove - Serial Player WT2003S
+
+<img src=https://media-cdn.seeedstudio.com/media/catalog/product/cache/bb49d3ec4ee05b6f018e93f896b8a25d/1/-/1-107020129-grove-mp3_v4-45font.jpg width=300>
+
+[Grove - Serial Player WT2605C](https://www.seeedstudio.com/Grove-MP3-V4-p-5862.html)
 
 ### connection of the hardware
 
@@ -156,7 +160,7 @@ For more information please visit [wiki](http://wiki.seeedstudio.com/Grove-MP3_v
 
 
 
-#### WT2003S
+#### WT2003S (WT2605C)
 
 - Play music in SD root.
 
@@ -196,4 +200,4 @@ Benefiting from local manufacture power and convenient global logistic system, <
 we integrate resources to serve new era of innovation. Seeed also works with <br>
 global distributors and partners to push open hardware movement.<br>
 
-[![Analytics](https://ga-beacon.appspot.com/UA-46589105-3/Grove_Serial_MP3_Player)](https://github.com/igrigorik/ga-beacon)
+[![Analytics](https://ga-beacon.appspot.com/UA-46589105-3/Grove_Serial_MP3_Player)](https://github.com/igrigorik/ga-beacon)[![Analytics](https://ga-beacon.appspot.com/UA-46589105-3/Grove_Serial_MP3_Player)](https://github.com/igrigorik/ga-beacon)
