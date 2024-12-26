@@ -20,10 +20,10 @@
 
 
 #if  defined(CONFIG_IDF_TARGET_ESP32C3) || defined(CONFIG_IDF_TARGET_ESP32C6) || defined(CONFIG_IDF_TARGET_ESP32S3)
-    #define COMSerial Serial1
+    #define COMSerial Serial0
     #define ShowSerial Serial
-    WT2605C<HardwareSerial> Mp3Player;
 
+    WT2605C<HardwareSerial> Mp3Player;
 #endif
 
 
@@ -58,9 +58,31 @@
     WT2605C<Uart> Mp3Player;
 #endif
 
+void printMenu(void) {
+    ShowSerial.println("MP3 Command List:");
+    ShowSerial.println("-----------------");
+    ShowSerial.println("'v<num>'    : set volume value");
+    ShowSerial.println("  eg: v1");
+    ShowSerial.println("'m<mode>'   : set playMode");
+    ShowSerial.println("    1 - loop mode");
+    ShowSerial.println("    2 - single song loop mode");
+    ShowSerial.println("    3 - folder song loop mode");
+    ShowSerial.println("    4 - random mode");
+    ShowSerial.println("    5 - single song mode");
+    ShowSerial.println("  eg: m1");
+    ShowSerial.println("'b<num>'    : play the song at num");
+    ShowSerial.println("  eg: b1");
+    ShowSerial.println("'+' or '-'  : raise/lower volume");
+    ShowSerial.println("'n'         : next song");
+    ShowSerial.println("'p'         : previous song");
+    ShowSerial.println("'s'         : play or pause");
+    ShowSerial.println();
+    ShowSerial.println("Any other key to show this menu");
+    ShowSerial.println();
+}
 
 void setup() {
-  while (!ShowSerial);
+  // while (!ShowSerial);
   ShowSerial.begin(9600);
   COMSerial.begin(115200);
   ShowSerial.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++");
@@ -68,7 +90,6 @@ void setup() {
 
   ShowSerial.println("0...");
 }
-
 
 void loop() {
   if(ShowSerial.available()) {
@@ -80,13 +101,12 @@ void loop() {
       Mp3Player.volume(vol);
       ShowSerial.println("Volume set to: " + String(vol));
     }
-    
     else if(input.startsWith("m")) {
       if(input.substring(1) == "1"){
         ShowSerial.println("1");
         int err = Mp3Player.playMode(WT2605C_CYCLE);
         ShowSerial.println(err);
-        if(!err) ShowSerial.println("The playback mode is set to Loop mode.");
+        if(!err) ShowSerial.println("The playback mode is set to loop mode.");
         else ShowSerial.println("ERROR");
       }
       else if(input.substring(1) == "2"){
@@ -141,5 +161,12 @@ void loop() {
       Mp3Player.previous();
       ShowSerial.println("Previous song");
     }
+    else if(input.startsWith("s")){
+      Mp3Player.pause_or_play();
+      ShowSerial.println("Pause or Play");
+    } else {
+      printMenu();
+    }
   }
 }
+

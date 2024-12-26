@@ -48,7 +48,7 @@
 
 
 #if  defined(CONFIG_IDF_TARGET_ESP32C3) || defined(CONFIG_IDF_TARGET_ESP32C6) || defined(CONFIG_IDF_TARGET_ESP32S3)
-    #define COMSerial Serial1
+    #define COMSerial Serial0
     #define ShowSerial Serial
 
     MP3Player<KT403A<HardwareSerial>> Mp3Player;
@@ -90,20 +90,16 @@
 static uint8_t recv_cmd[8] = {};
 
 void setup() {
-
     // put your setup code here, to run once:
 
     ShowSerial.begin(9600);
     COMSerial.begin(9600);
-    while (!ShowSerial);
+    // while (!ShowSerial);
     #if defined(ARDUINO_XIAO_RA4M1) 
     delay(2000);
     #else
     while (!COMSerial);
     #endif
-    
-    
-    
     
     delay(100);
     Mp3Player.controller->init(COMSerial);
