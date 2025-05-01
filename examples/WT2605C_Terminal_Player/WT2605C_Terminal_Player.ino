@@ -9,6 +9,14 @@
   WT2605C<SoftwareSerial> Mp3Player;
 #endif
 
+
+#if defined(ARDUINO_ARCH_RENESAS) && !defined(ARDUINO_XIAO_RA4M1)
+    #define COMSerial Serial1
+    #define ShowSerial Serial
+    WT2605C<HardwareSerial> Mp3Player;
+#endif
+
+
 #if defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350) ||  defined(ARDUINO_XIAO_RA4M1) 
     #include <SoftwareSerial.h>
     SoftwareSerial SSerial(D7, D6); // RX, TX
