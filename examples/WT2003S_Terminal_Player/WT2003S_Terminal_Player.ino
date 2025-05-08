@@ -9,7 +9,7 @@
     WT2003S<SoftwareSerial> Mp3Player;
 #endif
 
-#ifdef ARDUINO_ARCH_RENESAS
+#if defined(ARDUINO_ARCH_RENESAS) && !defined(ARDUINO_XIAO_RA4M1)
     #define COMSerial Serial1
     #define ShowSerial Serial
     WT2605C<HardwareSerial> Mp3Player;
